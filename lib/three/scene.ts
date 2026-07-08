@@ -6,6 +6,7 @@ import { createInput } from './inputs';
 import { createMouseTracker } from './inputs/mouse';
 import { createParticles } from './particles/createParticles';
 import { updateParticleMotion } from './particles/particleMotion';
+import { updateParticleOpacity } from './particles/particleOpacity';
 import { createRenderer } from './renderer';
 
 export function createScene(canvas: HTMLCanvasElement) {
@@ -24,8 +25,10 @@ export function createScene(canvas: HTMLCanvasElement) {
   scene.add(camera);
 
   const particles = createParticles(scene);
-  const animationLoop = new AnimationLoop(renderer, scene, camera);
 
+  updateParticleOpacity(particles);
+
+  const animationLoop = new AnimationLoop(renderer, scene, camera);
   // ---------------------------------------------------------------------------
   // Registering the update pipeline tasks
   // ---------------------------------------------------------------------------

@@ -9,8 +9,8 @@ const TURBULENCE_SPEED = 0.07;
 const TURBULENCE_AMPLITUDE = 0.035;
 
 // Magnetic field
-const MAGNET_RADIUS = 3.5;
-const MAGNET_STRENGTH = 0.18;
+const MAGNET_RADIUS = 2.4;
+const MAGNET_STRENGTH = 0.5;
 
 const raycaster = new THREE.Raycaster();
 
@@ -36,6 +36,9 @@ export function updateParticleMotion(
   // const distance = -camera.position.z / direction.z;
 
   // mouseWorld.copy(camera.position).add(direction.multiplyScalar(distance));
+
+  // Build a ray from the current mouse position.
+  raycaster.setFromCamera(mouse.normalized, camera);
 
   for (const particle of particles) {
     // -------------------------------------------------------------------------
@@ -104,9 +107,6 @@ export function updateParticleMotion(
     // -------------------------------------------------------------------------
     // Magnetic attraction
     // -------------------------------------------------------------------------
-
-    // Build a ray from the current mouse position.
-    raycaster.setFromCamera(mouse.normalized, camera);
 
     // Create a plane at the particle's original depth.
     interactionPlane.set(new THREE.Vector3(0, 0, 1), -particle.position.z);
