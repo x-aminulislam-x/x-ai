@@ -68,6 +68,7 @@ export function createParticles(scene: THREE.Scene): ParticleData[] {
 
       // Random starting point
       phase: Math.random() * Math.PI * 2,
+      neighbors: [],
     });
   }
 

@@ -2,12 +2,13 @@ import * as THREE from 'three';
 import { AnimationLoop } from './animation';
 import { createCamera, updateCamera } from './camera';
 import { ANIMATION_CONFIG } from './constants';
-import { createInput } from './inputs';
 import { createMouseTracker } from './inputs/mouse';
 import { createParticles } from './particles/createParticles';
 import { updateParticleMotion } from './particles/particleMotion';
 import { updateParticleOpacity } from './particles/particleOpacity';
 import { createRenderer } from './renderer';
+import { scrollTimeline } from './stage2';
+import { detectNeighbors } from './stage2/connections/neighborDetection';
 
 export function createScene(canvas: HTMLCanvasElement) {
   const scene = new THREE.Scene();
@@ -15,16 +16,18 @@ export function createScene(canvas: HTMLCanvasElement) {
 
   const renderer = createRenderer(canvas);
 
-  const inputManager = createInput();
-
   const mouseTracker = createMouseTracker();
 
-  console.log(inputManager.input.mouse);
+  let accumulator = 0;
 
   const camera = createCamera();
   scene.add(camera);
 
+  const progress = scrollTimeline.getProgress();
+
   const particles = createParticles(scene);
+
+  const searchRadius = THREE.MathUtils.lerp(0.4, 2.5, progress);
 
   updateParticleOpacity(particles);
 
@@ -38,6 +41,20 @@ export function createScene(canvas: HTMLCanvasElement) {
   animationLoop.updates.push(elapsed =>
     updateParticleMotion(particles, mouseTracker.mouse, camera, elapsed)
   );
+
+  animationLoop.updates.push((_, delta) => {
+    scrollTimeline.update(delta);
+  });
+
+  animationLoop.updates.push((_, delta) => {
+    accumulator += delta;
+
+    if (accumulator < 0.1) return;
+
+    accumulator = 0;
+    detectNeighbors(particles, searchRadius);
+  });
+
   // Future updates can be cleanly appended right here without touching animate():
   // animationLoop.updates.push(updateParticles);
   // animationLoop.updates.push(updateConnections);

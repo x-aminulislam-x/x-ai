@@ -37,7 +37,7 @@ export function createMouseTracker() {
   };
 
   let previousTime = performance.now();
-  console.log('Mouse tracker created');
+
   function onPointerMove(event: PointerEvent) {
     const now = performance.now();
 
@@ -55,7 +55,6 @@ export function createMouseTracker() {
       (event.clientX / window.innerWidth) * 2 - 1,
       -(event.clientY / window.innerHeight) * 2 + 1
     );
-    console.log('pointer move');
     previousTime = now;
   }
 

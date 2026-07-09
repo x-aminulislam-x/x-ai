@@ -9,6 +9,7 @@ export interface ParticleData {
   speed: number;
   amplitude: number;
   phase: number;
+  neighbors: number[];
 }
 
 export interface ParticleSettings {
