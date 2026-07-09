@@ -16,6 +16,16 @@ export interface ParticleData {
 
   neighbors: number[];
   stableNeighbors: Set<number>;
+
+  // Stage 4 — Node → Interface morph
+  cardIndex: number; // -1 until assigned by assignParticlesToCards()
+  isCardSeed: boolean;
+  dissolves: boolean;
+  cardPosition: THREE.Vector3;
+  cardWidth: number;
+  cardHeight: number;
+  baseScale: number;
+  baseOpacity: number;
 }
 
 export interface ParticleSettings {

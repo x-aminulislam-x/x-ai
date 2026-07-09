@@ -10,6 +10,14 @@ import { createRenderer } from './renderer';
 import { scrollTimeline } from './stage2';
 import { detectNeighbors } from './stage2/connections/neighborDetection';
 import { assignGridAnchors, generateGridAnchors } from './stage3/grid';
+import {
+  assignParticlesToCards,
+  createDashboardContent,
+  dashboardTimeline,
+  generateCardSlots,
+  getContentRevealProgress,
+  updateCardMorph,
+} from './stage4';
 
 export function createScene(canvas: HTMLCanvasElement) {
   const scene = new THREE.Scene();
@@ -32,6 +40,12 @@ export function createScene(canvas: HTMLCanvasElement) {
   assignGridAnchors(particles, anchors);
 
   updateParticleOpacity(particles);
+
+  const cardSlots = generateCardSlots();
+
+  assignParticlesToCards(scene, particles, cardSlots);
+
+  const dashboardContent = createDashboardContent(scene, particles, cardSlots);
 
   const animationLoop = new AnimationLoop(renderer, scene, camera);
   // ---------------------------------------------------------------------------
@@ -61,6 +75,20 @@ export function createScene(canvas: HTMLCanvasElement) {
       progress
     );
     detectNeighbors(particles, searchRadius);
+  });
+
+  animationLoop.updates.push((_, delta) => {
+    dashboardTimeline.update(delta);
+  });
+
+  animationLoop.updates.push(() => {
+    updateCardMorph(particles, dashboardTimeline.getProgress());
+  });
+
+  animationLoop.updates.push(elapsed => {
+    const revealProgress = getContentRevealProgress(dashboardTimeline.getProgress());
+    dashboardContent.updateIndicators(elapsed, revealProgress);
+    dashboardContent.updatePipelines(elapsed, revealProgress);
   });
 
   // Future updates can be cleanly appended right here without touching animate():

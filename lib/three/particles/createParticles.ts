@@ -73,6 +73,16 @@ export function createParticles(scene: THREE.Scene): ParticleData[] {
       phase: Math.random() * Math.PI * 2,
       neighbors: [],
       stableNeighbors: new Set(),
+
+      // Stage 4 — filled in later by assignParticlesToCards()
+      cardIndex: -1,
+      isCardSeed: false,
+      dissolves: false,
+      cardPosition: new THREE.Vector3(),
+      cardWidth: 0,
+      cardHeight: 0,
+      baseScale: scale,
+      baseOpacity: 0.85,
     });
   }
 

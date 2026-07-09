@@ -3,7 +3,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
-class ScrollTimeline {
+export class ScrollTimeline {
   /**
    * Single source of truth.
    * Value is always between 0 and 1.
