@@ -54,7 +54,10 @@ export function createParticles(scene: THREE.Scene): ParticleData[] {
     particles.push({
       type,
       mesh: object,
-      position,
+
+      originalPosition: position.clone(),
+      targetPosition: position.clone(),
+      position: position.clone(),
 
       // ------------------------------------------------------------------
       // Motion randomization (Chunk C4)
@@ -69,6 +72,7 @@ export function createParticles(scene: THREE.Scene): ParticleData[] {
       // Random starting point
       phase: Math.random() * Math.PI * 2,
       neighbors: [],
+      stableNeighbors: new Set(),
     });
   }
 

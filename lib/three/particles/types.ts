@@ -5,11 +5,17 @@ export type ParticleType = 'circle' | 'square' | 'line' | 'cross';
 export interface ParticleData {
   type: ParticleType;
   mesh: THREE.Object3D;
+
+  originalPosition: THREE.Vector3;
+  targetPosition: THREE.Vector3;
   position: THREE.Vector3;
+
   speed: number;
   amplitude: number;
   phase: number;
+
   neighbors: number[];
+  stableNeighbors: Set<number>;
 }
 
 export interface ParticleSettings {

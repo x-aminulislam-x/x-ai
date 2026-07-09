@@ -1,6 +1,5 @@
+import { STAGE2_CONFIG } from '../../constants';
 import { ParticleData } from '../../particles/types';
-
-const MAX_NEIGHBORS = 6;
 
 export function detectNeighbors(particles: ParticleData[], searchRadius: number): void {
   const radiusSquared = searchRadius * searchRadius;
@@ -25,8 +24,8 @@ export function detectNeighbors(particles: ParticleData[], searchRadius: number)
 
       if (distanceSquared <= radiusSquared) {
         if (
-          particleA.neighbors.length < MAX_NEIGHBORS &&
-          particleB.neighbors.length < MAX_NEIGHBORS
+          particleA.neighbors.length < STAGE2_CONFIG.MAX_CONNECTIONS &&
+          particleB.neighbors.length < STAGE2_CONFIG.MAX_CONNECTIONS
         ) {
           particleA.neighbors.push(j);
           particleB.neighbors.push(i);

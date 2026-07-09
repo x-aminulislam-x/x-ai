@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { MouseState } from '../inputs/mouse';
+import { scrollTimeline } from '../stage2';
 import { ParticleData } from './types';
 
 const FLOAT_SPEED = 0.18;
@@ -51,13 +52,21 @@ export function updateParticleMotion(
 
     const depthAmplitude = THREE.MathUtils.lerp(0.8, 1.15, depth);
 
-    const speed = FLOAT_SPEED * depthSpeed * particle.speed;
+    const progress = scrollTimeline.getProgress();
 
-    const turbulenceSpeed = TURBULENCE_SPEED * depthSpeed * particle.speed;
+    const speed =
+      FLOAT_SPEED * depthSpeed * particle.speed * THREE.MathUtils.lerp(1, 0.55, progress);
 
-    const amplitude = FLOAT_AMPLITUDE * depthAmplitude * particle.amplitude;
+    const turbulenceSpeed =
+      TURBULENCE_SPEED * depthSpeed * particle.speed * THREE.MathUtils.lerp(1, 0.35, progress);
 
-    const turbulenceAmplitude = TURBULENCE_AMPLITUDE * depthAmplitude * particle.amplitude;
+    // As the system organizes, motion becomes calmer.
+    const calmFactor = THREE.MathUtils.lerp(1, 0.25, progress);
+
+    const amplitude = FLOAT_AMPLITUDE * depthAmplitude * particle.amplitude * calmFactor;
+
+    const turbulenceAmplitude =
+      TURBULENCE_AMPLITUDE * depthAmplitude * particle.amplitude * calmFactor;
 
     const phase = particle.phase;
 
@@ -98,11 +107,15 @@ export function updateParticleMotion(
     // Base animated position
     // -------------------------------------------------------------------------
 
+    particle.position.lerpVectors(particle.originalPosition, particle.targetPosition, progress);
+
     const x = particle.position.x + floatX + turbulenceX;
 
     const y = particle.position.y + floatY + turbulenceY;
 
-    const z = particle.position.z + floatZ + turbulenceZ;
+    const breathe = Math.sin(elapsed * 0.8) * THREE.MathUtils.lerp(0, 0.03, progress);
+
+    const z = particle.position.z + floatZ + turbulenceZ + breathe;
 
     // -------------------------------------------------------------------------
     // Magnetic attraction

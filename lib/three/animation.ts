@@ -44,8 +44,8 @@ export class AnimationLoop {
 
     requestAnimationFrame(this.animate);
 
-    const elapsed = this.clock.getElapsedTime();
     const delta = this.clock.getDelta();
+    const elapsed = this.clock.elapsedTime;
 
     // Execute everything in the pipeline array sequentially
     for (const update of this.updates) {

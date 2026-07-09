@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { AnimationLoop } from './animation';
 import { createCamera, updateCamera } from './camera';
-import { ANIMATION_CONFIG } from './constants';
+import { ANIMATION_CONFIG, STAGE2_CONFIG } from './constants';
 import { createMouseTracker } from './inputs/mouse';
 import { createParticles } from './particles/createParticles';
 import { updateParticleMotion } from './particles/particleMotion';
@@ -9,6 +9,7 @@ import { updateParticleOpacity } from './particles/particleOpacity';
 import { createRenderer } from './renderer';
 import { scrollTimeline } from './stage2';
 import { detectNeighbors } from './stage2/connections/neighborDetection';
+import { assignGridAnchors, generateGridAnchors } from './stage3/grid';
 
 export function createScene(canvas: HTMLCanvasElement) {
   const scene = new THREE.Scene();
@@ -27,7 +28,8 @@ export function createScene(canvas: HTMLCanvasElement) {
 
   const particles = createParticles(scene);
 
-  const searchRadius = THREE.MathUtils.lerp(0.4, 2.5, progress);
+  const anchors = generateGridAnchors(particles.length);
+  assignGridAnchors(particles, anchors);
 
   updateParticleOpacity(particles);
 
@@ -48,10 +50,16 @@ export function createScene(canvas: HTMLCanvasElement) {
 
   animationLoop.updates.push((_, delta) => {
     accumulator += delta;
+    if (accumulator < STAGE2_CONFIG.NEIGHBOR_UPDATE_INTERVAL) return;
+    accumulator -= STAGE2_CONFIG.NEIGHBOR_UPDATE_INTERVAL;
 
-    if (accumulator < 0.1) return;
+    const progress = scrollTimeline.getProgress();
 
-    accumulator = 0;
+    const searchRadius = THREE.MathUtils.lerp(
+      STAGE2_CONFIG.MIN_CONNECTION_RADIUS,
+      STAGE2_CONFIG.MAX_CONNECTION_RADIUS,
+      progress
+    );
     detectNeighbors(particles, searchRadius);
   });
 
