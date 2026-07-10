@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { STAGE4_CONFIG } from '../constants';
 import { ParticleData } from '../particles/types';
 import { CardSlot } from './dashboardLayout';
 import { pointOnRectPerimeter } from './perimeter';
@@ -42,7 +41,7 @@ export function assignParticlesToCards(
     const bucket = buckets[cardIndex];
     if (bucket.length === 0) return;
 
-    // Prefer a non-cross particle as the seed (crosses are Groups, not Meshes).
+    // Pick the seed particle for the main card panel
     let seed = bucket.find(p => p.type !== 'cross') ?? bucket[0];
     let seedDistance = seed.targetPosition.distanceToSquared(slot.position);
 
@@ -57,24 +56,15 @@ export function assignParticlesToCards(
 
     setupSeedParticle(scene, seed, slot);
 
-    const borderCandidates = bucket.filter(particle => particle !== seed);
-    const borderCount = Math.min(
-      borderCandidates.length,
-      STAGE4_CONFIG.MAX_BORDER_PARTICLES_PER_CARD
-    );
+    // BORDER REMOVAL: Every other particle in this bucket now dissolves.
+    for (const particle of bucket) {
+      if (particle === seed) continue;
 
-    borderCandidates.forEach((particle, index) => {
       particle.cardIndex = cardIndex;
-
-      if (index < borderCount) {
-        setupBorderParticle(particle, slot, index, borderCount);
-      } else {
-        // Extras quietly dissolve instead of crowding the border.
-        particle.isCardSeed = false;
-        particle.dissolves = true;
-        particle.cardPosition = particle.targetPosition.clone();
-      }
-    });
+      particle.isCardSeed = false;
+      particle.dissolves = true; // Force all remaining to dissolve
+      particle.cardPosition = particle.targetPosition.clone();
+    }
   });
 }
 
@@ -101,7 +91,10 @@ function setupSeedParticle(scene: THREE.Scene, particle: ParticleData, slot: Car
     // 'cross' type is a Group — replace it with a single mesh instead.
     const replacement = new THREE.Mesh(cardGeometry, shaderMaterial);
     replacement.position.copy(mesh.position);
-    replacement.rotation.copy(mesh.rotation);
+    // Card panels must be perfectly flat/aligned — do NOT inherit the
+    // source particle's rotation (crosses/squares are randomly rotated
+    // for visual variety in particleFactory.ts).
+    replacement.rotation.set(0, 0, 0);
     replacement.scale.set(initialDiameter, initialDiameter, 1);
 
     scene.remove(mesh);
@@ -113,6 +106,7 @@ function setupSeedParticle(scene: THREE.Scene, particle: ParticleData, slot: Car
 
   mesh.geometry = cardGeometry;
   mesh.material = shaderMaterial;
+  mesh.rotation.set(0, 0, 0);
   mesh.scale.set(initialDiameter, initialDiameter, 1);
 }
 

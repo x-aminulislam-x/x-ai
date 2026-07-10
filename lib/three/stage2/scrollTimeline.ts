@@ -29,17 +29,19 @@ export class ScrollTimeline {
     );
   }
 
-  init(trigger: HTMLElement) {
+  init(trigger: HTMLElement, opts?: { snapPoints?: number[]; end?: string }) {
     if (this.timeline) return;
 
     this.timeline = gsap.timeline({
       scrollTrigger: {
         trigger,
         start: 'top top',
-        end: 'bottom bottom',
+        end: opts?.end ?? 'bottom bottom', // default stays as-is
         scrub: true,
         invalidateOnRefresh: true,
-
+        snap: opts?.snapPoints
+          ? { snapTo: opts.snapPoints, duration: { min: 0.2, max: 0.6 }, ease: 'power1.inOut' }
+          : undefined,
         onUpdate: self => {
           this.targetProgress = self.progress;
         },

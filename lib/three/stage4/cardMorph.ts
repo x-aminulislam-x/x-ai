@@ -2,9 +2,6 @@ import * as THREE from 'three';
 import { STAGE4_CONFIG } from '../constants';
 import { ParticleData } from '../particles/types';
 
-// Position-only smoothing — gives the "growing out of the network" chase feel.
-const CHASE_FACTOR = 0.1;
-
 export function updateCardMorph(particles: ParticleData[], progress: number): void {
   for (const particle of particles) {
     if (particle.cardIndex === -1) continue;
@@ -13,9 +10,8 @@ export function updateCardMorph(particles: ParticleData[], progress: number): vo
       updateSeedParticle(particle, progress);
     } else if (particle.dissolves) {
       updateDissolvingParticle(particle, progress);
-    } else {
-      updateBorderParticle(particle, progress);
     }
+    // updateBorderParticle has been completely removed
   }
 }
 
@@ -23,15 +19,47 @@ function updateSeedParticle(particle: ParticleData, progress: number): void {
   const mesh = particle.mesh as THREE.Mesh;
   const material = mesh.material as THREE.ShaderMaterial;
 
-  const targetPosition = new THREE.Vector3().lerpVectors(
-    particle.targetPosition,
-    particle.cardPosition,
-    progress
-  );
-  mesh.position.lerp(targetPosition, CHASE_FACTOR);
+  // 1. PERFECT TRANSLATION (No more lazy CHASE_FACTOR)
+  // Lockstep interpolation from original network -> card grid (0.0 to 0.4)
+  const gridProgress = THREE.MathUtils.clamp(progress / 0.4, 0, 1);
 
-  const width = THREE.MathUtils.lerp(particle.baseScale, particle.cardWidth, progress);
-  const height = THREE.MathUtils.lerp(particle.baseScale, particle.cardHeight, progress);
+  let currentX = THREE.MathUtils.lerp(
+    particle.targetPosition.x,
+    particle.cardPosition.x,
+    gridProgress
+  );
+  let currentY = THREE.MathUtils.lerp(
+    particle.targetPosition.y,
+    particle.cardPosition.y,
+    gridProgress
+  );
+  let currentZ = THREE.MathUtils.lerp(
+    particle.targetPosition.z,
+    particle.cardPosition.z,
+    gridProgress
+  );
+
+  // Collapse to the left perfectly
+  if (progress > 0.6) {
+    const collapseFactor = THREE.MathUtils.clamp((progress - 0.6) / 0.4, 0, 1);
+
+    // Mathematically perfect vertical stack for the 6 cards on the left
+    const targetLeftX = -6.0;
+    const targetLeftY = 3.0 - particle.cardIndex * 1.2;
+    const targetLeftZ = -2.0;
+
+    currentX = THREE.MathUtils.lerp(currentX, targetLeftX, collapseFactor);
+    currentY = THREE.MathUtils.lerp(currentY, targetLeftY, collapseFactor);
+    currentZ = THREE.MathUtils.lerp(currentZ, targetLeftZ, collapseFactor);
+  }
+
+  // Force exact mathematical position to fix all alignment bugs instantly
+  mesh.position.set(currentX, currentY, currentZ);
+
+  // 2. SIZE & SHAPE
+  const buildProgress = THREE.MathUtils.clamp(progress / 0.6, 0, 1);
+  const width = THREE.MathUtils.lerp(particle.baseScale, particle.cardWidth, buildProgress);
+  const height = THREE.MathUtils.lerp(particle.baseScale, particle.cardHeight, buildProgress);
   mesh.scale.set(width, height, 1);
 
   const uniforms = material.uniforms;
@@ -39,38 +67,28 @@ function updateSeedParticle(particle: ParticleData, progress: number): void {
   uniforms.uRadius.value = THREE.MathUtils.lerp(
     particle.baseScale / 2,
     STAGE4_CONFIG.CARD_CORNER_RADIUS,
-    progress
+    buildProgress
   );
-  uniforms.uOpacity.value = THREE.MathUtils.lerp(
-    particle.baseOpacity,
-    STAGE4_CONFIG.CARD_OPACITY,
-    progress
-  );
-}
 
-function updateBorderParticle(particle: ParticleData, progress: number): void {
-  const targetPosition = new THREE.Vector3().lerpVectors(
-    particle.targetPosition,
-    particle.cardPosition,
-    progress
-  );
-  particle.mesh.position.lerp(targetPosition, CHASE_FACTOR);
+  // 3. FADE-IN, then hold steady
+  // (previously this also faded opacity back to 0 between 0.85→1.0, which
+  // meant the cards went fully invisible right as the left-column collapse
+  // finished — removed since the collapsed state is meant to stay visible.)
+  let opacity = particle.baseOpacity;
+  if (progress < 0.6) {
+    opacity = THREE.MathUtils.lerp(particle.baseOpacity, STAGE4_CONFIG.CARD_OPACITY, buildProgress);
+  } else {
+    opacity = STAGE4_CONFIG.CARD_OPACITY;
+  }
 
-  const targetScale = THREE.MathUtils.lerp(
-    particle.baseScale,
-    particle.baseScale * STAGE4_CONFIG.BORDER_SCALE_MULTIPLIER,
-    progress
-  );
-  particle.mesh.scale.setScalar(targetScale);
-
-  setMeshOpacity(
-    particle.mesh,
-    THREE.MathUtils.lerp(particle.baseOpacity, STAGE4_CONFIG.BORDER_OPACITY, progress)
-  );
+  uniforms.uOpacity.value = opacity;
 }
 
 function updateDissolvingParticle(particle: ParticleData, progress: number): void {
-  setMeshOpacity(particle.mesh, THREE.MathUtils.lerp(particle.baseOpacity, 0, progress));
+  // Dissolving particles remain for the synchronized shrink in scene.ts,
+  // but we can ensure their opacity zeroes out cleanly here as a fallback.
+  const dissolveProgress = THREE.MathUtils.clamp(progress / 0.5, 0, 1);
+  setMeshOpacity(particle.mesh, THREE.MathUtils.lerp(particle.baseOpacity, 0, dissolveProgress));
 }
 
 function setMeshOpacity(mesh: THREE.Object3D, opacity: number): void {
