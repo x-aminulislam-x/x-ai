@@ -23,7 +23,8 @@ export function updateParticleMotion(
   particles: ParticleData[],
   mouse: MouseState,
   camera: THREE.PerspectiveCamera,
-  elapsed: number
+  elapsed: number,
+  liveliness = 0
 ) {
   // ---------------------------------------------------------------------------
   // Convert mouse from Normalized Device Coordinates to world space.
@@ -54,14 +55,25 @@ export function updateParticleMotion(
 
     const progress = scrollTimeline.getProgress();
 
+    // Stage 6 reverses the "organizing calms things down" effect: as
+    // liveliness rises, motionProgress falls back toward 0 so speed,
+    // turbulence, and calm all ease back to their free-floating values.
+    // `progress` itself is untouched — it still needs to stay at 1 below,
+    // so particles keep snapping to their grid targetPosition, not drifting
+    // back to originalPosition.
+    const motionProgress = progress * (1 - liveliness);
+
     const speed =
-      FLOAT_SPEED * depthSpeed * particle.speed * THREE.MathUtils.lerp(1, 0.55, progress);
+      FLOAT_SPEED * depthSpeed * particle.speed * THREE.MathUtils.lerp(1, 0.55, motionProgress);
 
     const turbulenceSpeed =
-      TURBULENCE_SPEED * depthSpeed * particle.speed * THREE.MathUtils.lerp(1, 0.35, progress);
+      TURBULENCE_SPEED *
+      depthSpeed *
+      particle.speed *
+      THREE.MathUtils.lerp(1, 0.35, motionProgress);
 
     // As the system organizes, motion becomes calmer.
-    const calmFactor = THREE.MathUtils.lerp(1, 0.25, progress);
+    const calmFactor = THREE.MathUtils.lerp(1, 0.25, motionProgress);
 
     const amplitude = FLOAT_AMPLITUDE * depthAmplitude * particle.amplitude * calmFactor;
 

@@ -49,3 +49,19 @@ export const STAGE4_CONFIG = {
   BORDER_SCALE_MULTIPLIER: 0.6,
   MAX_BORDER_PARTICLES_PER_CARD: 60,
 } as const;
+
+export const STAGE6_CONFIG = {
+  // Progress window where the DOM dashboard fades back out and the WebGL canvas fades back in
+  CROSSFADE_REVERSE_END: 0.15,
+  // Dashboard slot rect -> collapsed left column
+  HANDOFF_REVERSE_END: 0.45,
+  // Collapsed left column -> grid position, shrink back to particle size
+  UNCOLLAPSE_START: 0.35,
+  UNCOLLAPSE_END: 0.75,
+  // Dissolved (background) particles fade back in
+  REJOIN_START: 0.3,
+  REJOIN_END: 0.7,
+  // Camera drift + particle turbulence ramp back to full liveliness
+  LIVELINESS_START: 0.5,
+  LIVELINESS_END: 1.0,
+} as const;

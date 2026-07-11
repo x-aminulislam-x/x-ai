@@ -32,7 +32,19 @@ export class ScrollTimeline {
     }
   }
 
-  init(trigger: HTMLElement, opts?: { snapPoints?: number[]; end?: string }) {
+  public reset() {
+    this.progress = 0;
+    this.targetProgress = 0;
+  }
+
+  init(
+    trigger: HTMLElement,
+    opts?: {
+      snapPoints?: number[];
+      end?: string;
+      onProgress?: (progress: number, direction: number) => void;
+    }
+  ) {
     if (this.timeline) return;
 
     this.timeline = gsap.timeline({
@@ -47,6 +59,7 @@ export class ScrollTimeline {
           : undefined,
         onUpdate: self => {
           this.targetProgress = self.progress;
+          opts?.onProgress?.(self.progress, self.direction);
         },
       },
     });

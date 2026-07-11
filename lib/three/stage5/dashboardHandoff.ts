@@ -10,7 +10,7 @@ import { CARD_INDEX_TO_SLOT, DASHBOARD_SLOTS, fractionalRectToWorld } from './da
  * where each card is sitting when the handoff begins — using it as the
  * lerp start means there's no jump at handoffProgress = 0.
  */
-function getCollapsedPosition(cardIndex: number): THREE.Vector3 {
+export function getCollapsedPosition(cardIndex: number): THREE.Vector3 {
   return new THREE.Vector3(-6.0, 3.0 - cardIndex * 1.2, -2.0);
 }
 

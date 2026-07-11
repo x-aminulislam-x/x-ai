@@ -20,6 +20,9 @@ import {
 } from './stage4';
 import { registerCardSeeds, updateCardHover } from './stage4/cardInteraction';
 import { dashboardHandoffTimeline, getHandoffContentFade, updateDashboardHandoff } from './stage5';
+import { updateCardReform, updateParticleRejoin } from './stage6';
+import { getLivelinessBoost } from './stage6/liveliness';
+import { reformTimeline } from './stage6/reformTimeline';
 
 export function createScene(canvas: HTMLCanvasElement) {
   const scene = new THREE.Scene();
@@ -53,12 +56,15 @@ export function createScene(canvas: HTMLCanvasElement) {
   // ---------------------------------------------------------------------------
 
   // Base updates
-  animationLoop.updates.push((elapsed: number) =>
-    updateCamera(camera, elapsed, dashboardTimeline.getProgress())
-  );
-  animationLoop.updates.push(elapsed =>
-    updateParticleMotion(particles, mouseTracker.mouse, camera, elapsed)
-  );
+  animationLoop.updates.push((elapsed: number) => {
+    const liveliness = getLivelinessBoost(reformTimeline.getProgress());
+    updateCamera(camera, elapsed, dashboardTimeline.getProgress() * (1 - liveliness));
+  });
+
+  animationLoop.updates.push(elapsed => {
+    const liveliness = getLivelinessBoost(reformTimeline.getProgress());
+    updateParticleMotion(particles, mouseTracker.mouse, camera, elapsed, liveliness);
+  });
 
   animationLoop.updates.push((_, delta) => {
     scrollTimeline.update(delta);
@@ -85,6 +91,10 @@ export function createScene(canvas: HTMLCanvasElement) {
 
   animationLoop.updates.push((_, delta) => {
     dashboardHandoffTimeline.update(delta);
+  });
+
+  animationLoop.updates.push((_, delta) => {
+    reformTimeline.update(delta);
   });
 
   // Card formation (position/shape/opacity lockstep + left-column collapse)
@@ -125,6 +135,10 @@ export function createScene(canvas: HTMLCanvasElement) {
     updateDashboardHandoff(particles, dashboardHandoffTimeline.getProgress(), camera);
   });
 
+  animationLoop.updates.push(() => {
+    updateCardReform(particles, reformTimeline.getProgress(), camera);
+  });
+
   // Card hover detection — runs after the morph/handoff updates above so
   // it raycasts against this frame's already-settled mesh positions, and
   // is suppressed once the dashboard handoff begins (see cardInteraction.ts).
@@ -135,6 +149,10 @@ export function createScene(canvas: HTMLCanvasElement) {
       dashboardTimeline.getProgress(),
       dashboardHandoffTimeline.getProgress()
     );
+  });
+
+  animationLoop.updates.push(() => {
+    updateParticleRejoin(particles, reformTimeline.getProgress());
   });
 
   // Start execution loop
@@ -154,6 +172,7 @@ export function createScene(canvas: HTMLCanvasElement) {
 
   function dispose() {
     window.removeEventListener('resize', handleResize);
+    reformTimeline.dispose();
     animationLoop.dispose();
 
     const gl = renderer.getContext();
