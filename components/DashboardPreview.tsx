@@ -11,7 +11,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { DASHBOARD_SLOTS } from './dashboardGrid';
+import { DASHBOARD_SLOTS } from '../lib/three/stage5/dashboardGrid';
 
 type NavKey = 'overview' | 'analytics' | 'pipelines' | 'settings';
 

@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import { createScene } from '../lib/three/scene';
 import { scrollTimeline } from '../lib/three/stage2';
 import { dashboardTimeline } from '../lib/three/stage4/dashboardTimeline';
-import DashboardPreview from '../lib/three/stage5/DashboardPreview';
 import { dashboardHandoffTimeline } from '../lib/three/stage5/dashboardTimeline';
+import DashboardPreview from './DashboardPreview';
 import InsightFlowOverlay from './InsightFlowOverlay';
 
 const TITLE_FADE_END = 0.08;
