@@ -54,9 +54,16 @@ export function registerCardSeeds(particles: ParticleData[]): void {
 export function updateCardHover(
   mouse: MouseState,
   camera: THREE.PerspectiveCamera,
-  dashProgress: number
+  dashProgress: number,
+  handoffProgress = 0
 ): void {
-  const isActive = dashProgress > ACTIVATION_THRESHOLD;
+  // Once the stage4->dashboard handoff begins, the seed meshes stop
+  // representing individual metrics (they're mid-morph into sidebar/
+  // header/panel/etc), so hover hit-testing and the highlight-toward-white
+  // effect need to switch off. Leaving isActive false here also drives
+  // hoverFactors back down to 0 via the lerp below, so any currently
+  // hovered card's highlight eases out cleanly instead of freezing mid-fade.
+  const isActive = dashProgress > ACTIVATION_THRESHOLD && handoffProgress <= 0.001;
 
   let newHoveredIndex = -1;
 

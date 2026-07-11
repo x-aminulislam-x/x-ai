@@ -19,21 +19,19 @@ import {
   updateCardMorph,
 } from './stage4';
 import { registerCardSeeds, updateCardHover } from './stage4/cardInteraction';
+import { dashboardHandoffTimeline, getHandoffContentFade, updateDashboardHandoff } from './stage5';
 
 export function createScene(canvas: HTMLCanvasElement) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(ANIMATION_CONFIG.RENDERER_BACKGROUND);
 
   const renderer = createRenderer(canvas);
-
   const mouseTracker = createMouseTracker();
 
   let accumulator = 0;
 
   const camera = createCamera();
   scene.add(camera);
-
-  const progress = scrollTimeline.getProgress();
 
   const particles = createParticles(scene);
 
@@ -55,7 +53,9 @@ export function createScene(canvas: HTMLCanvasElement) {
   // ---------------------------------------------------------------------------
 
   // Base updates
-  animationLoop.updates.push((elapsed: number) => updateCamera(camera, elapsed));
+  animationLoop.updates.push((elapsed: number) =>
+    updateCamera(camera, elapsed, dashboardTimeline.getProgress())
+  );
   animationLoop.updates.push(elapsed =>
     updateParticleMotion(particles, mouseTracker.mouse, camera, elapsed)
   );
@@ -83,50 +83,59 @@ export function createScene(canvas: HTMLCanvasElement) {
     dashboardTimeline.update(delta);
   });
 
+  animationLoop.updates.push((_, delta) => {
+    dashboardHandoffTimeline.update(delta);
+  });
+
+  // Card formation (position/shape/opacity lockstep + left-column collapse)
+  // and the synchronized background-particle shrink, in one pass.
+  // (Previously updateCardMorph was called twice per frame here — once
+  // alone, once again inside this block — consolidated into a single call.)
   animationLoop.updates.push(() => {
-    updateCardMorph(particles, dashboardTimeline.getProgress());
-  });
-
-  animationLoop.updates.push(elapsed => {
-    const revealProgress = getContentRevealProgress(dashboardTimeline.getProgress());
-    dashboardContent.updateIndicators(elapsed, revealProgress);
-    dashboardContent.updateText(revealProgress);
-  });
-
-  // Inside createScene() in scene.ts:
-
-  animationLoop.updates.push(elapsed => {
     const dashProgress = dashboardTimeline.getProgress();
-
-    // 1. ALWAYS run the card morph (letting cardMorph.ts handle the movement/layout)
     updateCardMorph(particles, dashProgress);
 
-    // 2. Synchronized Background Shrink (Shrinks to 0 exactly as cards grow to 100%)
-    // The cards grow from progress 0.0 to 0.6.
     const shrinkProgress = THREE.MathUtils.clamp(dashProgress / 0.6, 0, 1);
-
-    // As shrinkProgress goes 0 -> 1, scaleMultiplier goes 1 -> 0
     const scaleMultiplier = 1.0 - shrinkProgress;
 
     for (const particle of particles) {
-      // Only target the ~2,134 background particles marked to dissolve
       if (particle.dissolves && particle.mesh) {
         particle.mesh.scale.setScalar(particle.baseScale * scaleMultiplier);
       }
     }
   });
 
-  // Card hover detection — runs after the morph/collapse updates above so it
-  // raycasts against this frame's already-settled mesh positions.
-  animationLoop.updates.push(() => {
-    updateCardHover(mouseTracker.mouse, camera, dashboardTimeline.getProgress());
+  // Card content (label text) reveal — combines stage4's own reveal
+  // window with stage5's fast fade-out at the start of the dashboard
+  // handoff, so labels are fully gone before their card backgrounds
+  // start reshaping into sidebar/header/panel/etc.
+  animationLoop.updates.push(elapsed => {
+    const revealProgress = getContentRevealProgress(dashboardTimeline.getProgress());
+    const handoffFade = getHandoffContentFade(dashboardHandoffTimeline.getProgress());
+    const combinedReveal = revealProgress * handoffFade;
+
+    dashboardContent.updateIndicators(elapsed, combinedReveal);
+    dashboardContent.updateText(combinedReveal);
   });
 
-  // Future updates can be cleanly appended right here without touching animate():
-  // animationLoop.updates.push(updateParticles);
-  // animationLoop.updates.push(updateConnections);
-  // animationLoop.updates.push(updateMouseInteraction);
-  // animationLoop.updates.push(updateMorphing);
+  // Stage5 — morphs the 6 settled card backgrounds into dashboard-slot
+  // rects. Runs after updateCardMorph above so it overrides this frame's
+  // already-settled collapsed position/scale rather than fighting it.
+  animationLoop.updates.push(() => {
+    updateDashboardHandoff(particles, dashboardHandoffTimeline.getProgress(), camera);
+  });
+
+  // Card hover detection — runs after the morph/handoff updates above so
+  // it raycasts against this frame's already-settled mesh positions, and
+  // is suppressed once the dashboard handoff begins (see cardInteraction.ts).
+  animationLoop.updates.push(() => {
+    updateCardHover(
+      mouseTracker.mouse,
+      camera,
+      dashboardTimeline.getProgress(),
+      dashboardHandoffTimeline.getProgress()
+    );
+  });
 
   // Start execution loop
   animationLoop.start();
@@ -146,7 +155,11 @@ export function createScene(canvas: HTMLCanvasElement) {
   function dispose() {
     window.removeEventListener('resize', handleResize);
     animationLoop.dispose();
+
+    const gl = renderer.getContext();
     renderer.dispose();
+    gl.getExtension('WEBGL_lose_context')?.loseContext(); // force immediate GPU context release
+
     mouseTracker.dispose();
   }
 

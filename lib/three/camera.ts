@@ -17,15 +17,17 @@ export function createCamera(): THREE.PerspectiveCamera {
   return camera;
 }
 
-/**
- * Updates the camera's tracking position using a smooth drift effect.
- * * @param camera - The target PerspectiveCamera instance
- * @param elapsed - Total clock elapsed execution time in seconds
- */
-export function updateCamera(camera: THREE.PerspectiveCamera, elapsed: number): void {
-  const targetX = Math.sin(elapsed * 0.18) * 0.25;
-  const targetY = Math.cos(elapsed * 0.15) * 0.18;
-  const targetZ = CAMERA_SETTINGS.BASE_DISTANCE_Z + Math.sin(elapsed * 0.12) * 0.12;
+export function updateCamera(
+  camera: THREE.PerspectiveCamera,
+  elapsed: number,
+  dashboardProgress = 0
+): void {
+  const stillness = THREE.MathUtils.smoothstep(dashboardProgress, 0.85, 1.0);
+  const driftScale = 1 - stillness;
+
+  const targetX = Math.sin(elapsed * 0.18) * 0.25 * driftScale;
+  const targetY = Math.cos(elapsed * 0.15) * 0.18 * driftScale;
+  const targetZ = CAMERA_SETTINGS.BASE_DISTANCE_Z + Math.sin(elapsed * 0.12) * 0.12 * driftScale;
 
   camera.position.x = lerp(camera.position.x, targetX, ANIMATION_CONFIG.CAMERA_LERP_FACTOR);
   camera.position.y = lerp(camera.position.y, targetY, ANIMATION_CONFIG.CAMERA_LERP_FACTOR);

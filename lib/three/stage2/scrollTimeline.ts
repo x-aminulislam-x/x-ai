@@ -27,6 +27,9 @@ export class ScrollTimeline {
       this.targetProgress,
       1 - Math.exp(-10 * delta)
     );
+    if (Math.abs(this.progress - this.targetProgress) < 0.0005) {
+      this.progress = this.targetProgress;
+    }
   }
 
   init(trigger: HTMLElement, opts?: { snapPoints?: number[]; end?: string }) {
