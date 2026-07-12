@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { AnimationLoop } from './animation';
 import { createCamera, updateCamera } from './camera';
-import { ANIMATION_CONFIG, STAGE2_CONFIG } from './constants';
+import { ANIMATION_CONFIG, CAMERA_SETTINGS, STAGE2_CONFIG, STAGE7_CONFIG } from './constants';
 import { createMouseTracker } from './inputs/mouse';
 import { createParticles } from './particles/createParticles';
 import { updateParticleMotion } from './particles/particleMotion';
@@ -23,6 +23,15 @@ import { dashboardHandoffTimeline, getHandoffContentFade, updateDashboardHandoff
 import { updateCardReform, updateParticleRejoin } from './stage6';
 import { getLivelinessBoost } from './stage6/liveliness';
 import { reformTimeline } from './stage6/reformTimeline';
+import {
+  assignLorenzPositions,
+  createDragOrbit,
+  generateLorenzAttractor,
+  lorenzTimeline,
+  updateCameraOrbit,
+  updateParticleBillboard,
+  updateParticleJoinScale,
+} from './stage7';
 
 export function createScene(canvas: HTMLCanvasElement) {
   const scene = new THREE.Scene();
@@ -30,6 +39,7 @@ export function createScene(canvas: HTMLCanvasElement) {
 
   const renderer = createRenderer(canvas);
   const mouseTracker = createMouseTracker();
+  const dragOrbit = createDragOrbit(canvas);
 
   let accumulator = 0;
 
@@ -40,6 +50,9 @@ export function createScene(canvas: HTMLCanvasElement) {
 
   const anchors = generateGridAnchors(particles.length);
   assignGridAnchors(particles, anchors);
+
+  const lorenzPoints = generateLorenzAttractor(particles.length, STAGE7_CONFIG);
+  assignLorenzPositions(particles, lorenzPoints);
 
   updateParticleOpacity(particles);
 
@@ -59,11 +72,30 @@ export function createScene(canvas: HTMLCanvasElement) {
   animationLoop.updates.push((elapsed: number) => {
     const liveliness = getLivelinessBoost(reformTimeline.getProgress());
     updateCamera(camera, elapsed, dashboardTimeline.getProgress() * (1 - liveliness));
+
+    const lorenzProgress = lorenzTimeline.getProgress();
+    dragOrbit.setEnabled(lorenzProgress > STAGE7_CONFIG.DRAG_ENABLE_THRESHOLD);
+    dragOrbit.update();
+
+    updateCameraOrbit(
+      camera,
+      elapsed,
+      lorenzProgress,
+      dragOrbit.getAzimuthOffset(),
+      dragOrbit.getElevationOffset()
+    );
   });
 
   animationLoop.updates.push(elapsed => {
     const liveliness = getLivelinessBoost(reformTimeline.getProgress());
-    updateParticleMotion(particles, mouseTracker.mouse, camera, elapsed, liveliness);
+    updateParticleMotion(
+      particles,
+      mouseTracker.mouse,
+      camera,
+      elapsed,
+      liveliness,
+      lorenzTimeline.getProgress()
+    );
   });
 
   animationLoop.updates.push((_, delta) => {
@@ -95,6 +127,10 @@ export function createScene(canvas: HTMLCanvasElement) {
 
   animationLoop.updates.push((_, delta) => {
     reformTimeline.update(delta);
+  });
+
+  animationLoop.updates.push((_, delta) => {
+    lorenzTimeline.update(delta);
   });
 
   // Card formation (position/shape/opacity lockstep + left-column collapse)
@@ -155,6 +191,14 @@ export function createScene(canvas: HTMLCanvasElement) {
     updateParticleRejoin(particles, reformTimeline.getProgress());
   });
 
+  animationLoop.updates.push(() => {
+    updateParticleJoinScale(particles, lorenzTimeline.getProgress());
+  });
+
+  animationLoop.updates.push(() => {
+    updateParticleBillboard(particles, camera, lorenzTimeline.getProgress());
+  });
+
   // Start execution loop
   animationLoop.start();
 
@@ -173,6 +217,7 @@ export function createScene(canvas: HTMLCanvasElement) {
   function dispose() {
     window.removeEventListener('resize', handleResize);
     reformTimeline.dispose();
+    lorenzTimeline.dispose();
     animationLoop.dispose();
 
     const gl = renderer.getContext();
@@ -180,6 +225,17 @@ export function createScene(canvas: HTMLCanvasElement) {
     gl.getExtension('WEBGL_lose_context')?.loseContext(); // force immediate GPU context release
 
     mouseTracker.dispose();
+    dragOrbit.dispose();
+  }
+
+  function resetView() {
+    // Hard-snaps the camera back to its resting position instead of
+    // relying on updateCamera's damped lerp (CAMERA_LERP_FACTOR: 0.03)
+    // to slowly catch up from wherever the stage7 orbit left it — that
+    // slow catch-up is what reads as "spinning" right after the loop.
+    camera.position.set(0, 0, CAMERA_SETTINGS.BASE_DISTANCE_Z);
+    camera.lookAt(0, 0, 0);
+    dragOrbit.reset();
   }
 
   return {
@@ -189,5 +245,6 @@ export function createScene(canvas: HTMLCanvasElement) {
     particles,
     mouse: mouseTracker.mouse,
     dispose,
+    resetView,
   };
 }

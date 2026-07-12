@@ -24,6 +24,10 @@ export interface ParticleData {
   cardPosition: THREE.Vector3;
   cardWidth: number;
   cardHeight: number;
+
+  lorenzPosition: THREE.Vector3;
+  originalQuaternion: THREE.Quaternion;
+
   baseScale: number;
   baseOpacity: number;
 }

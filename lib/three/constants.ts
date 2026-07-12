@@ -65,3 +65,37 @@ export const STAGE6_CONFIG = {
   LIVELINESS_START: 0.5,
   LIVELINESS_END: 1.0,
 } as const;
+
+export const STAGE7_CONFIG = {
+  SIGMA: 10,
+  RHO: 28,
+  BETA: 8 / 3,
+
+  // Fine-resolution integration: far more raw points than particles.
+  // These get resampled by arc length below — this is what removes the
+  // gaps, since it decouples "how many points we compute" from "how
+  // evenly spaced the final 2500 are."
+  TRAJECTORY_DT: 0.004,
+  TRAJECTORY_STEPS: 40000,
+  WARMUP_STEPS: 2000,
+
+  DISPLAY_RADIUS: 11,
+
+  // Particles scale up slightly once fully joined so neighboring
+  // particles along the curve visually overlap instead of leaving
+  // sub-pixel gaps even after even spacing.
+  PARTICLE_JOIN_SCALE: 2.4,
+
+  // Camera orbit
+  ORBIT_RADIUS: 22,
+  ORBIT_BASE_ELEVATION: 0.3, // radians, slight default tilt once formed
+  ORBIT_MAX_SCROLL_ANGLE: Math.PI * 0.6,
+  ORBIT_AUTO_ROTATE_SPEED: 0.06,
+  ORBIT_LERP_FACTOR: 0.04,
+
+  // Mouse-drag 360 control
+  DRAG_ENABLE_THRESHOLD: 0.9, // only draggable once the attractor is mostly formed
+  DRAG_SENSITIVITY: 0.006,
+  DRAG_ELEVATION_LIMIT: Math.PI / 2.2,
+  DRAG_INERTIA_DECAY: 0.92,
+} as const;

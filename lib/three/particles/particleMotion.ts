@@ -24,7 +24,8 @@ export function updateParticleMotion(
   mouse: MouseState,
   camera: THREE.PerspectiveCamera,
   elapsed: number,
-  liveliness = 0
+  liveliness = 0,
+  lorenzProgress = 0
 ) {
   // ---------------------------------------------------------------------------
   // Convert mouse from Normalized Device Coordinates to world space.
@@ -120,6 +121,15 @@ export function updateParticleMotion(
     // -------------------------------------------------------------------------
 
     particle.position.lerpVectors(particle.originalPosition, particle.targetPosition, progress);
+
+    if (lorenzProgress > 0) {
+      const gridPosition = particle.position.clone();
+      particle.position.lerpVectors(
+        gridPosition,
+        particle.lorenzPosition,
+        THREE.MathUtils.smoothstep(lorenzProgress, 0, 1)
+      );
+    }
 
     const x = particle.position.x + floatX + turbulenceX;
 

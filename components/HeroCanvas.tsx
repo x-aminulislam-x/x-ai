@@ -6,6 +6,7 @@ import { scrollTimeline } from '../lib/three/stage2';
 import { dashboardTimeline } from '../lib/three/stage4/dashboardTimeline';
 import { dashboardHandoffTimeline } from '../lib/three/stage5/dashboardTimeline';
 import { reformTimeline } from '../lib/three/stage6';
+import { lorenzTimeline } from '../lib/three/stage7';
 import DashboardPreview from './DashboardPreview';
 import InsightFlowOverlay from './InsightFlowOverlay';
 
@@ -19,6 +20,7 @@ export default function HeroSection() {
   const stage4Ref = useRef<HTMLDivElement>(null);
   const stage5Ref = useRef<HTMLDivElement>(null);
   const stage6Ref = useRef<HTMLDivElement>(null);
+  const stage7Ref = useRef<HTMLDivElement>(null);
   const isLoopingRef = useRef(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -33,6 +35,7 @@ export default function HeroSection() {
       !stage4Ref.current ||
       !stage5Ref.current ||
       !stage6Ref.current ||
+      !stage7Ref.current ||
       !canvasRef.current
     ) {
       return;
@@ -68,7 +71,14 @@ export default function HeroSection() {
     });
 
     reformTimeline.init(stage6Ref.current, {
-      snapPoints: [0, 0.8],
+      snapPoints: [0, 1],
+      end: 'bottom top', // no longer the last trigger — stage7 is
+    });
+
+    const app = createScene(canvasRef.current);
+
+    lorenzTimeline.init(stage7Ref.current, {
+      snapPoints: [0, 0.901],
       // no `end` override — stays 'bottom bottom', now the final trigger
       onProgress: (progress, direction) => {
         if (progress < 0.999 || direction !== 1 || isLoopingRef.current) return;
@@ -79,11 +89,9 @@ export default function HeroSection() {
         dashboardTimeline.reset();
         dashboardHandoffTimeline.reset();
         reformTimeline.reset();
+        lorenzTimeline.reset();
+        app.resetView();
 
-        // Force an instant jump regardless of any global
-        // `scroll-behavior: smooth` CSS — without this override, a
-        // smooth-scroll CSS rule elsewhere in the app would turn this
-        // into a slow animated scroll back to the top instead of a loop.
         const prevBehavior = document.documentElement.style.scrollBehavior;
         document.documentElement.style.scrollBehavior = 'auto';
         window.scrollTo(0, 0);
@@ -94,8 +102,6 @@ export default function HeroSection() {
         });
       },
     });
-
-    const app = createScene(canvasRef.current);
 
     const sync = () => {
       setTitleOpacity(1 - Math.min(scrollTimeline.getProgress() / TITLE_FADE_END, 1));
@@ -125,12 +131,13 @@ export default function HeroSection() {
       dashboardTimeline.dispose();
       dashboardHandoffTimeline.dispose();
       reformTimeline.dispose();
+      lorenzTimeline.dispose();
       app.dispose();
     };
   }, []);
 
   return (
-    <section className="relative h-[900vh]">
+    <section className="relative h-[1100vh]">
       <div className="sticky top-0 h-screen overflow-hidden bg-[#050816]">
         <canvas
           ref={canvasRef}
@@ -176,6 +183,10 @@ export default function HeroSection() {
       <div
         ref={stage6Ref}
         className="absolute top-[700vh] left-0 h-[200vh] w-full pointer-events-none"
+      />
+      <div
+        ref={stage7Ref}
+        className="absolute top-[900vh] left-0 h-[200vh] w-full pointer-events-none"
       />
     </section>
   );

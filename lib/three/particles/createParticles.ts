@@ -83,6 +83,8 @@ export function createParticles(scene: THREE.Scene): ParticleData[] {
       cardHeight: 0,
       baseScale: scale,
       baseOpacity: 0.85,
+      lorenzPosition: new THREE.Vector3(),
+      originalQuaternion: object.quaternion.clone(),
     });
   }
 
