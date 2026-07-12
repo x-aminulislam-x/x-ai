@@ -24,14 +24,16 @@ import { updateCardReform, updateParticleRejoin } from './stage6';
 import { getLivelinessBoost } from './stage6/liveliness';
 import { reformTimeline } from './stage6/reformTimeline';
 import {
-  assignLorenzPositions,
+  computeAizawaNormalization,
   createDragOrbit,
-  generateLorenzAttractor,
   lorenzTimeline,
+  seedFlowPositions,
   updateCameraOrbit,
   updateParticleBillboard,
+  updateParticleFlow,
   updateParticleJoinScale,
 } from './stage7';
+import { isPointerOverAttractor } from './stage7/objectHover';
 
 export function createScene(canvas: HTMLCanvasElement) {
   const scene = new THREE.Scene();
@@ -51,8 +53,8 @@ export function createScene(canvas: HTMLCanvasElement) {
   const anchors = generateGridAnchors(particles.length);
   assignGridAnchors(particles, anchors);
 
-  const lorenzPoints = generateLorenzAttractor(particles.length, STAGE7_CONFIG);
-  assignLorenzPositions(particles, lorenzPoints);
+  const aizawaNorm = computeAizawaNormalization(STAGE7_CONFIG);
+  seedFlowPositions(particles);
 
   updateParticleOpacity(particles);
 
@@ -69,20 +71,27 @@ export function createScene(canvas: HTMLCanvasElement) {
   // ---------------------------------------------------------------------------
 
   // Base updates
-  animationLoop.updates.push((elapsed: number) => {
+  animationLoop.updates.push((elapsed: number, delta: number) => {
     const liveliness = getLivelinessBoost(reformTimeline.getProgress());
     updateCamera(camera, elapsed, dashboardTimeline.getProgress() * (1 - liveliness));
 
     const lorenzProgress = lorenzTimeline.getProgress();
-    dragOrbit.setEnabled(lorenzProgress > STAGE7_CONFIG.DRAG_ENABLE_THRESHOLD);
+    const isFormed = lorenzProgress > STAGE7_CONFIG.DRAG_ENABLE_THRESHOLD;
+    const overObject = isFormed && isPointerOverAttractor(mouseTracker.mouse, camera);
+
+    dragOrbit.setEnabled(isFormed);
+    dragOrbit.setZoomEnabled(overObject);
     dragOrbit.update();
 
     updateCameraOrbit(
       camera,
       elapsed,
+      delta,
       lorenzProgress,
       dragOrbit.getAzimuthOffset(),
-      dragOrbit.getElevationOffset()
+      dragOrbit.getElevationOffset(),
+      dragOrbit.getZoomOffset(),
+      dragOrbit.getHoverFactor()
     );
   });
 
@@ -197,6 +206,15 @@ export function createScene(canvas: HTMLCanvasElement) {
 
   animationLoop.updates.push(() => {
     updateParticleBillboard(particles, camera, lorenzTimeline.getProgress());
+  });
+
+  animationLoop.updates.push(() => {
+    updateParticleFlow(
+      particles,
+      lorenzTimeline.getProgress(),
+      aizawaNorm.center,
+      aizawaNorm.scale
+    );
   });
 
   // Start execution loop

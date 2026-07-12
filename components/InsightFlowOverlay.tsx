@@ -92,11 +92,11 @@ export default function InsightFlowOverlay() {
         )}
       </div>
 
-      <div className="hidden md:flex flex-col items-end font-mono text-[10px] tracking-wider text-slate-500 space-y-1 bg-black/20 backdrop-blur-sm p-4 rounded border border-white/5 self-end mb-12">
+      {/* <div className="hidden md:flex flex-col items-end font-mono text-[10px] tracking-wider text-slate-500 space-y-1 bg-black/20 backdrop-blur-sm p-4 rounded border border-white/5 self-end mb-12">
         <div>SYS_STATUS: ACTIVE</div>
         <div>TIMELINE_DELTA: {progress.toFixed(4)}</div>
         <div>VECTOR_COUNT: 2500</div>
-      </div>
+      </div> */}
     </div>
   );
 }

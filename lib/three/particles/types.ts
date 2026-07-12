@@ -26,6 +26,8 @@ export interface ParticleData {
   cardHeight: number;
 
   lorenzPosition: THREE.Vector3;
+  rawLorenzPosition: THREE.Vector3; // raw ODE-space point, before center/scale normalization
+  flowPosition: THREE.Vector3; // live position, advected forward each frame once joined
   originalQuaternion: THREE.Quaternion;
 
   baseScale: number;

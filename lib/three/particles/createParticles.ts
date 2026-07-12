@@ -84,6 +84,8 @@ export function createParticles(scene: THREE.Scene): ParticleData[] {
       baseScale: scale,
       baseOpacity: 0.85,
       lorenzPosition: new THREE.Vector3(),
+      rawLorenzPosition: new THREE.Vector3(),
+      flowPosition: new THREE.Vector3(),
       originalQuaternion: object.quaternion.clone(),
     });
   }
