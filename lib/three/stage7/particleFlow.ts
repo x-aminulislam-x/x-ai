@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { STAGE7_CONFIG } from '../constants';
 import { ParticleData } from '../particles/types';
-import { aizawaRk4Step } from './aizawaAttractor';
+import { aizawaStepInPlace } from './aizawaStep';
 
 /**
  * Every frame, once lorenzProgress > 0, advances each particle's
@@ -37,16 +37,22 @@ export function updateParticleFlow(
   for (const particle of particles) {
     if (particle.isCardSeed) continue;
 
-    let p = { x: particle.flowPosition.x, y: particle.flowPosition.y, z: particle.flowPosition.z };
+    // particle.flowPosition (a THREE.Vector3) is passed directly and
+    // mutated in place across all substeps — no per-frame, per-particle
+    // object allocation at all now.
     for (let i = 0; i < FLOW_SUBSTEPS_PER_FRAME; i++) {
-      p = aizawaRk4Step(p, FLOW_DT, AIZAWA_A, AIZAWA_B, AIZAWA_C, AIZAWA_D, AIZAWA_E, AIZAWA_F);
+      aizawaStepInPlace(
+        particle.flowPosition,
+        FLOW_DT,
+        AIZAWA_A,
+        AIZAWA_B,
+        AIZAWA_C,
+        AIZAWA_D,
+        AIZAWA_E,
+        AIZAWA_F
+      );
     }
-    particle.flowPosition.set(p.x, p.y, p.z);
 
-    // particle.lorenzPosition is the display-space target that
-    // particleMotion.ts already blends toward via lorenzProgress — no
-    // changes needed there, it just now tracks a moving point instead
-    // of a fixed one.
     particle.lorenzPosition.copy(particle.flowPosition).sub(center).multiplyScalar(scale);
   }
 }

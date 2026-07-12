@@ -1,4 +1,5 @@
-export { aizawaRk4Step, computeAizawaNormalization } from './aizawaAttractor';
+export { computeAizawaNormalization } from './aizawaAttractor';
+export { aizawaStepInPlace } from './aizawaStep';
 export { updateCameraOrbit } from './cameraOrbit';
 export { createDragOrbit } from './dragOrbit';
 export { seedFlowPositions } from './flowSeed';

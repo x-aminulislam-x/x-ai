@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { STAGE7_CONFIG } from '../constants';
+import { aizawaStepInPlace } from './aizawaStep';
 
 export interface AizawaPoint {
   x: number;
@@ -76,14 +77,14 @@ export function computeAizawaNormalization(config: typeof STAGE7_CONFIG): Aizawa
     DISPLAY_RADIUS,
   } = config;
 
-  let p: AizawaPoint = { x: 0.1, y: 0, z: 0 };
+  const p: AizawaPoint = { x: 0.1, y: 0, z: 0 };
   for (let i = 0; i < WARMUP_STEPS; i++) {
-    p = aizawaRk4Step(p, TRAJECTORY_DT, AIZAWA_A, AIZAWA_B, AIZAWA_C, AIZAWA_D, AIZAWA_E, AIZAWA_F);
+    aizawaStepInPlace(p, TRAJECTORY_DT, AIZAWA_A, AIZAWA_B, AIZAWA_C, AIZAWA_D, AIZAWA_E, AIZAWA_F);
   }
 
   const points: THREE.Vector3[] = [];
   for (let i = 0; i < TRAJECTORY_STEPS; i++) {
-    p = aizawaRk4Step(p, TRAJECTORY_DT, AIZAWA_A, AIZAWA_B, AIZAWA_C, AIZAWA_D, AIZAWA_E, AIZAWA_F);
+    aizawaStepInPlace(p, TRAJECTORY_DT, AIZAWA_A, AIZAWA_B, AIZAWA_C, AIZAWA_D, AIZAWA_E, AIZAWA_F);
     points.push(new THREE.Vector3(p.x, p.y, p.z));
   }
 
