@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { STAGE7_CONFIG } from '../lib/three/constants';
 import { createScene } from '../lib/three/scene';
 import { scrollTimeline } from '../lib/three/stage2';
 import { dashboardTimeline } from '../lib/three/stage4/dashboardTimeline';
 import { dashboardHandoffTimeline } from '../lib/three/stage5/dashboardTimeline';
 import { reformTimeline } from '../lib/three/stage6';
 import { lorenzTimeline } from '../lib/three/stage7';
+import AttractorHint from './AttractorHint';
 import DashboardPreview from './DashboardPreview';
 import InsightFlowOverlay from './InsightFlowOverlay';
 
@@ -27,6 +29,9 @@ export default function HeroSection() {
   const [titleOpacity, setTitleOpacity] = useState(1);
   const [canvasOpacity, setCanvasOpacity] = useState(1);
   const [dashboardOpacity, setDashboardOpacity] = useState(0);
+
+  const [attractorFormed, setAttractorFormed] = useState(false);
+
   const frameRef = useRef<number>(0);
 
   useEffect(() => {
@@ -120,9 +125,11 @@ export default function HeroSection() {
 
       setCanvasOpacity(1 - combinedCrossfade);
       setDashboardOpacity(combinedCrossfade);
+      setAttractorFormed(lorenzTimeline.getProgress() > STAGE7_CONFIG.DRAG_ENABLE_THRESHOLD);
 
       frameRef.current = requestAnimationFrame(sync);
     };
+
     frameRef.current = requestAnimationFrame(sync);
 
     return () => {
@@ -155,7 +162,7 @@ export default function HeroSection() {
         )}
 
         <InsightFlowOverlay />
-
+        <AttractorHint visible={attractorFormed} />
         <div
           className="absolute inset-0 z-30"
           style={{

@@ -80,7 +80,7 @@ export function createScene(canvas: HTMLCanvasElement) {
     const overObject = isFormed && isPointerOverAttractor(mouseTracker.mouse, camera);
 
     dragOrbit.setEnabled(isFormed);
-    dragOrbit.setZoomEnabled(overObject);
+    dragOrbit.setPointerOverObject(overObject);
     dragOrbit.update();
 
     updateCameraOrbit(

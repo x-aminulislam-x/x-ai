@@ -84,14 +84,14 @@ export const STAGE7_CONFIG = {
   // Live-flow seeding & integration (replaces static point assignment)
   FLOW_SEED_SCALE: 0.05, // scales particle.originalPosition down into the Aizawa basin
   FLOW_SEED_CLAMP: 1.4, // safety clamp so no seed starts outside the basin and diverges
-  FLOW_DT: 0.006,
-  FLOW_SUBSTEPS_PER_FRAME: 2, // RK4 steps run per rendered frame — tune this for faster/slower "assembly"
+  FLOW_DT: 0.003,
+  FLOW_SUBSTEPS_PER_FRAME: 1, // RK4 steps run per rendered frame — tune this for faster/slower "assembly"
 
   // Camera orbit
   ORBIT_RADIUS: 22,
   ORBIT_BASE_ELEVATION: 0.3,
   ORBIT_MAX_SCROLL_ANGLE: Math.PI * 0.6,
-  ORBIT_AUTO_ROTATE_SPEED: 0.006,
+  ORBIT_AUTO_ROTATE_SPEED: 0.0025,
   ORBIT_LERP_FACTOR: 0.04,
 
   // Mouse-drag 360 control
@@ -101,7 +101,7 @@ export const STAGE7_CONFIG = {
   DRAG_INERTIA_DECAY: 0.92,
 
   // Scroll/pinch-wheel zoom
-  ZOOM_MIN_RADIUS: 10,
+  ZOOM_MIN_RADIUS: 18,
   ZOOM_MAX_RADIUS: 55,
   ZOOM_SENSITIVITY: 0.02,
 

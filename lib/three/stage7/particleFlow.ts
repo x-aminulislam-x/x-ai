@@ -53,6 +53,9 @@ export function updateParticleFlow(
       );
     }
 
-    particle.lorenzPosition.copy(particle.flowPosition).sub(center).multiplyScalar(scale);
+    const dx = (particle.flowPosition.x - center.x) * scale;
+    const dy = (particle.flowPosition.y - center.y) * scale;
+    const dz = (particle.flowPosition.z - center.z) * scale;
+    particle.lorenzPosition.set(dx, -dz, dy);
   }
 }

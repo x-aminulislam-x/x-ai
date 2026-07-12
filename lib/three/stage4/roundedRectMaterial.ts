@@ -53,6 +53,5 @@ export function createRoundedRectMaterial(
     transparent: true,
     depthWrite: false,
     side: THREE.DoubleSide,
-    extensions: { derivatives: true },
   });
 }
