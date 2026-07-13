@@ -1,6 +1,6 @@
 'use client';
 
-import { BarChart3, Bell, GitBranch, LayoutDashboard, Search, Settings } from 'lucide-react';
+import { Bell, Search } from 'lucide-react';
 import { useState } from 'react';
 import {
   CartesianGrid,
@@ -11,57 +11,36 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import {
+  NAV_ITEMS,
+  NavKey,
+  STATUS_STYLES,
+  TAB_WIDGETS,
+  TOGGLE_PREFS,
+} from '../data/mock/dashboardPreview.data';
+import { PARTICLE_COLORS } from '../lib/three/constants';
 import { DASHBOARD_SLOTS } from '../lib/three/stage5/dashboardGrid';
 
-type NavKey = 'overview' | 'analytics' | 'pipelines' | 'settings';
-
-const NAV_ITEMS: { key: NavKey; label: string; icon: typeof LayoutDashboard }[] = [
-  { key: 'overview', label: 'Overview', icon: LayoutDashboard },
-  { key: 'analytics', label: 'Analytics', icon: BarChart3 },
-  { key: 'pipelines', label: 'Pipelines', icon: GitBranch },
-  { key: 'settings', label: 'Settings', icon: Settings },
-];
-
-const CHART_DATA: Record<'overview' | 'analytics', { name: string; value: number }[]> = {
-  overview: [
-    { name: 'Mon', value: 62 },
-    { name: 'Tue', value: 71 },
-    { name: 'Wed', value: 68 },
-    { name: 'Thu', value: 84 },
-    { name: 'Fri', value: 79 },
-    { name: 'Sat', value: 91 },
-    { name: 'Sun', value: 98 },
-  ],
-  analytics: [
-    { name: 'Mon', value: 1.0 },
-    { name: 'Tue', value: 1.1 },
-    { name: 'Wed', value: 0.9 },
-    { name: 'Thu', value: 1.3 },
-    { name: 'Fri', value: 1.2 },
-    { name: 'Sat', value: 1.4 },
-    { name: 'Sun', value: 1.6 },
-  ],
-};
-
-const TABLE_ROWS = [
-  { endpoint: '/v1/inference', status: 'Healthy', latency: '42ms', requests: '128K' },
-  { endpoint: '/v1/embeddings', status: 'Healthy', latency: '18ms', requests: '86K' },
-  { endpoint: '/v1/agents/run', status: 'Degraded', latency: '210ms', requests: '12K' },
-  { endpoint: '/v1/vector/search', status: 'Healthy', latency: '31ms', requests: '204K' },
-  { endpoint: '/v1/pipelines/sync', status: 'Healthy', latency: '55ms', requests: '9.4K' },
-];
+// Matches the particle system palette used in the WebGL scene.
 
 function pct(fraction: number): string {
   return `${fraction * 100}%`;
 }
 
 interface DashboardPreviewProps {
+  /** True once the WebGL->DOM crossfade has meaningfully begun; drives the staggered entrance. */
   revealed: boolean;
 }
 
 export default function DashboardPreview({ revealed }: DashboardPreviewProps) {
   const [activeNav, setActiveNav] = useState<NavKey>('overview');
-  const chartKey = activeNav === 'analytics' ? 'analytics' : 'overview';
+  const [prefs, setPrefs] = useState<Record<string, boolean>>({
+    email: true,
+    pipeline: true,
+    weekly: false,
+  });
+
+  const widgets = TAB_WIDGETS[activeNav];
 
   const enter = (delayMs: number) => ({
     className: `transition-all duration-500 ease-out ${
@@ -74,7 +53,7 @@ export default function DashboardPreview({ revealed }: DashboardPreviewProps) {
     <div className="relative h-full w-full font-sans text-slate-200">
       {/* Panel background */}
       <div
-        className={`absolute bg-[#0D1526]/60 ${enter(0).className}`}
+        className={`absolute ${enter(0).className}`}
         style={{
           left: pct(DASHBOARD_SLOTS.panel.x),
           top: pct(DASHBOARD_SLOTS.panel.y),
@@ -95,18 +74,24 @@ export default function DashboardPreview({ revealed }: DashboardPreviewProps) {
           ...enter(60).style,
         }}
       >
-        <div className="mb-8 px-3 text-sm font-semibold tracking-wide text-white">Insight</div>
+        <div className="mb-8 px-3 text-sm font-semibold tracking-wide text-white">
+          Xai – Intelligence Workspace
+        </div>
         {NAV_ITEMS.map(({ key, label, icon: Icon }) => {
           const active = key === activeNav;
           return (
             <button
               key={key}
               onClick={() => setActiveNav(key)}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors duration-200 ${
+              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors duration-200 hover:bg-white/5"
+              style={
                 active
-                  ? 'bg-teal-400/10 text-teal-300'
-                  : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
-              }`}
+                  ? {
+                      backgroundColor: `${PARTICLE_COLORS.primary}1A`,
+                      color: PARTICLE_COLORS.primary,
+                    }
+                  : { color: '#94a3b8' }
+              }
             >
               <Icon size={16} strokeWidth={1.75} />
               {label}
@@ -136,7 +121,7 @@ export default function DashboardPreview({ revealed }: DashboardPreviewProps) {
         </div>
       </div>
 
-      {/* Chart widget */}
+      {/* Chart / preferences widget */}
       <div
         className={`absolute rounded-xl border border-white/10 bg-[#101a30] p-5 shadow-lg shadow-black/20 ${enter(200).className}`}
         style={{
@@ -147,47 +132,84 @@ export default function DashboardPreview({ revealed }: DashboardPreviewProps) {
           ...enter(200).style,
         }}
       >
-        <p className="mb-1 text-xs uppercase tracking-widest text-slate-500">Request Volume</p>
-        <p className="mb-4 text-lg font-semibold text-white">Trailing 7 Days</p>
-        <ResponsiveContainer width="100%" height="70%">
-          <LineChart
-            data={CHART_DATA[chartKey]}
-            margin={{ top: 4, right: 8, left: -18, bottom: 0 }}
-          >
-            <CartesianGrid stroke="#ffffff10" vertical={false} />
-            <XAxis
-              dataKey="name"
-              stroke="#64748b"
-              fontSize={11}
-              tickLine={false}
-              axisLine={false}
-            />
-            <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
-            <Tooltip
-              contentStyle={{
-                background: '#0A1120',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 8,
-                fontSize: 12,
-              }}
-              labelStyle={{ color: '#94A3B8' }}
-            />
-            <Line
-              type="monotone"
-              dataKey="value"
-              stroke="#5EEAD4"
-              strokeWidth={2}
-              dot={false}
-              isAnimationActive
-              animationDuration={900}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        {activeNav === 'settings' ? (
+          <>
+            <p className="mb-1 text-xs uppercase tracking-widest text-slate-500">Preferences</p>
+            <p className="mb-4 text-lg font-semibold text-white">Notifications</p>
+            <div className="flex flex-col gap-3">
+              {TOGGLE_PREFS.map(({ key, label }) => {
+                const on = prefs[key];
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setPrefs(p => ({ ...p, [key]: !p[key] }))}
+                    className="flex items-center justify-between rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2.5 text-left text-sm text-slate-300 transition-colors hover:bg-white/5"
+                  >
+                    {label}
+                    <span
+                      className="relative h-5 w-9 rounded-full transition-colors"
+                      style={{
+                        backgroundColor: on ? PARTICLE_COLORS.secondary : 'rgba(255,255,255,0.1)',
+                      }}
+                    >
+                      <span
+                        className="absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform"
+                        style={{ transform: on ? 'translateX(18px)' : 'translateX(2px)' }}
+                      />
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="mb-1 text-xs uppercase tracking-widest text-slate-500">
+              {widgets.chart.subtitle}
+            </p>
+            <p className="mb-4 text-lg font-semibold text-white">{widgets.chart.title}</p>
+            <ResponsiveContainer width="100%" height="70%">
+              <LineChart
+                data={widgets.chart.data}
+                margin={{ top: 4, right: 8, left: -18, bottom: 0 }}
+              >
+                <CartesianGrid stroke="#ffffff10" vertical={false} />
+                <XAxis
+                  dataKey="name"
+                  stroke="#64748b"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
+                <Tooltip
+                  contentStyle={{
+                    background: '#0A1120',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: 8,
+                    fontSize: 12,
+                  }}
+                  labelStyle={{ color: '#94A3B8' }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke={widgets.chart.stroke}
+                  strokeWidth={2}
+                  dot={false}
+                  isAnimationActive
+                  animationDuration={900}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </>
+        )}
       </div>
 
       {/* Metric card widget */}
       <div
-        className={`absolute flex flex-col justify-center rounded-xl border border-white/10 bg-gradient-to-br from-[#134e4a] to-[#0f2942] p-5 shadow-lg shadow-black/20 ${enter(260).className}`}
+        key={activeNav + '-metric'}
+        className={`absolute flex flex-col justify-center rounded-xl border border-white/10 bg-gradient-to-br ${widgets.metric.gradient} p-5 shadow-lg shadow-black/20 ${enter(260).className}`}
         style={{
           left: pct(DASHBOARD_SLOTS.metric.x),
           top: pct(DASHBOARD_SLOTS.metric.y),
@@ -196,13 +218,19 @@ export default function DashboardPreview({ revealed }: DashboardPreviewProps) {
           ...enter(260).style,
         }}
       >
-        <p className="text-xs uppercase tracking-widest text-teal-300/80">Sys Latency</p>
-        <p className="mt-2 text-4xl font-semibold text-white">42ms</p>
-        <p className="mt-1 text-sm text-slate-400">Average response time</p>
+        <p
+          className="text-xs uppercase tracking-widest"
+          style={{ color: `${widgets.metric.accent}CC` }}
+        >
+          {widgets.metric.label}
+        </p>
+        <p className="mt-2 text-4xl font-semibold text-white">{widgets.metric.value}</p>
+        <p className="mt-1 text-sm text-slate-400">{widgets.metric.sublabel}</p>
       </div>
 
       {/* Table widget */}
       <div
+        key={activeNav + '-table'}
         className={`absolute overflow-hidden rounded-xl border border-white/10 bg-[#101a30] shadow-lg shadow-black/20 ${enter(320).className}`}
         style={{
           left: pct(DASHBOARD_SLOTS.table.x),
@@ -215,32 +243,31 @@ export default function DashboardPreview({ revealed }: DashboardPreviewProps) {
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-white/10 text-xs uppercase tracking-wide text-slate-500">
-              <th className="px-5 py-3 font-medium">Endpoint</th>
-              <th className="px-5 py-3 font-medium">Status</th>
-              <th className="px-5 py-3 font-medium">Latency</th>
-              <th className="px-5 py-3 font-medium">Requests</th>
+              {widgets.table.columns.map(col => (
+                <th key={col} className="px-5 py-3 font-medium">
+                  {col}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {TABLE_ROWS.map(row => (
+            {widgets.table.rows.map(row => (
               <tr
-                key={row.endpoint}
+                key={row.c1}
                 className="border-b border-white/5 transition-colors duration-150 hover:bg-white/5"
               >
-                <td className="px-5 py-3 font-mono text-xs text-slate-300">{row.endpoint}</td>
+                <td className="px-5 py-3 font-mono text-xs text-slate-300">{row.c1}</td>
                 <td className="px-5 py-3">
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs ${
-                      row.status === 'Healthy'
-                        ? 'bg-emerald-400/10 text-emerald-300'
-                        : 'bg-amber-400/10 text-amber-300'
+                      STATUS_STYLES[row.c2] ?? 'bg-white/5 text-slate-300'
                     }`}
                   >
-                    {row.status}
+                    {row.c2}
                   </span>
                 </td>
-                <td className="px-5 py-3 text-slate-300">{row.latency}</td>
-                <td className="px-5 py-3 text-slate-300">{row.requests}</td>
+                <td className="px-5 py-3 text-slate-300">{row.c3}</td>
+                <td className="px-5 py-3 text-slate-300">{row.c4}</td>
               </tr>
             ))}
           </tbody>
