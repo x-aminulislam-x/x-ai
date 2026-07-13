@@ -42,7 +42,7 @@ export function createCardText(label: CardLabel, color: THREE.Color): CardText {
 
   const mesh = new THREE.Mesh(geometry, material);
   mesh.position.set(0, LOCAL_Y, 0.01);
-  mesh.renderOrder = 2;
+  mesh.userData.localRenderOrder = 2;
 
   return {
     object: mesh,
@@ -55,6 +55,29 @@ export function createCardText(label: CardLabel, color: THREE.Color): CardText {
   };
 }
 
+const CARD_PADDING_X = 0; // was 64 — tightened to give text more usable width
+const VALUE_MAX_FONT_SIZE = 250;
+const VALUE_MIN_FONT_SIZE = 120; // floor — below this it's better to accept tight tracking than shrink further
+const VALUE_AVAILABLE_WIDTH = CANVAS_WIDTH - CARD_PADDING_X * 2;
+
+/**
+ * Finds the largest font size (down to VALUE_MIN_FONT_SIZE) at which
+ * `text` fits within VALUE_AVAILABLE_WIDTH pixels. This is the actual
+ * fix for long INSIGHT_LABELS values ("Correlation Surfaced" etc.)
+ * getting clipped — that clipping happens in this 2D canvas's pixel
+ * space, independent of how wide the 3D card mesh is, so widening the
+ * card alone (see cardMorph.ts) doesn't prevent it on its own.
+ */
+function fitFontSize(ctx: CanvasRenderingContext2D, text: string): number {
+  let size = VALUE_MAX_FONT_SIZE;
+  while (size > VALUE_MIN_FONT_SIZE) {
+    ctx.font = `700 ${size}px system-ui, -apple-system, sans-serif`;
+    if (ctx.measureText(text).width <= VALUE_AVAILABLE_WIDTH) break;
+    size -= 10;
+  }
+  return size;
+}
+
 function drawText(
   ctx: CanvasRenderingContext2D,
   label: CardLabel,
@@ -64,7 +87,7 @@ function drawText(
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
 
-  const paddingX = 64;
+  const paddingX = CARD_PADDING_X;
   let currentY = 90;
 
   // 1. EYEBROW
@@ -76,14 +99,17 @@ function drawText(
 
   currentY += 110;
 
-  // 2. PRIMARY METRIC — glow removed, doesn't read well in black
+  // 2. PRIMARY METRIC — font size now fit to the actual string, so long
+  // insight values never overflow the canvas the way short dashboard
+  // metric values ("98.2%", "1.2K") never used to.
+  const valueFontSize = fitFontSize(ctx, label.value);
   ctx.fillStyle = '#000000';
-  ctx.font = '700 250px system-ui, -apple-system, sans-serif';
+  ctx.font = `700 ${valueFontSize}px system-ui, -apple-system, sans-serif`;
   ctx.letterSpacing = '-4px';
   ctx.globalAlpha = 1.0;
   ctx.fillText(label.value, paddingX, currentY);
 
-  currentY += 280;
+  currentY += Math.max(valueFontSize * 1.12, 200);
 
   // 3. SUBTEXT
   ctx.fillStyle = '#000000';

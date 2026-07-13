@@ -48,7 +48,11 @@ export function updateDashboardHandoff(
       THREE.MathUtils.lerp(startPos.z, targetRect.position.z, t)
     );
 
-    const width = THREE.MathUtils.lerp(particle.cardWidth, targetRect.width, t);
+    // Lerp starts from CARD_COLLAPSED_WIDTH, not particle.cardWidth —
+    // cardMorph.ts sizes the collapsed stack to CARD_COLLAPSED_WIDTH
+    // (see its collapseFactor lerp), so this needs to match that exact
+    // value or there's a visible snap the instant this stage begins.
+    const width = THREE.MathUtils.lerp(STAGE4_CONFIG.CARD_COLLAPSED_WIDTH, targetRect.width, t);
     const height = THREE.MathUtils.lerp(particle.cardHeight, targetRect.height, t);
     mesh.scale.set(width, height, 1);
 

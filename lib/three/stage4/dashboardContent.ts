@@ -33,7 +33,7 @@ export function createDashboardContent(
     // there's no z-fighting or flicker during the brief window both
     // could theoretically have nonzero opacity.
     insightText.object.position.z = 0.011;
-    insightText.object.renderOrder = 3;
+    insightText.object.userData.localRenderOrder = 3; // overridden per-frame in cardInteraction.ts
     mesh.add(insightText.object);
     insightTexts.push(insightText);
   });

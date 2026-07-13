@@ -16,7 +16,6 @@ interface SeedMeshEntry {
   mesh: THREE.Mesh;
   cardIndex: number;
   baseColor: THREE.Color;
-  shadowMesh?: THREE.Mesh;
 }
 
 const HOVER_POP_Z = 0.4; // how far the hovered card steps toward the camera
@@ -45,8 +44,7 @@ export function registerCardSeeds(particles: ParticleData[]): void {
       const mesh = particle.mesh as THREE.Mesh;
       const material = mesh.material as THREE.ShaderMaterial;
       const baseColor = (material.uniforms.uColor.value as THREE.Color).clone();
-      // mesh.renderOrder = particle.cardIndex; // stable default stacking order
-      return { mesh, cardIndex: particle.cardIndex, baseColor, shadowMesh: particle.shadowMesh };
+      return { mesh, cardIndex: particle.cardIndex, baseColor };
     });
 
   hoverFactors = seedEntries.map(() => 0);
@@ -89,17 +87,30 @@ export function updateCardHover(
     const colorUniform = material.uniforms.uColor.value as THREE.Color;
     colorUniform.copy(entry.baseColor).lerp(HIGHLIGHT_COLOR, hoverFactors[i] * HIGHLIGHT_MIX);
 
-    // NEW — pop the hovered card toward the camera and draw it above its
-    // overlapping neighbors, so it's unambiguous which one is active.
     entry.mesh.position.z += hoverFactors[i] * HOVER_POP_Z;
-    // entry.mesh.renderOrder = hoverFactors[i] > 0.01 ? 10 : entry.cardIndex;
 
-    if (entry.shadowMesh) {
-      const shadowMaterial = entry.shadowMesh.material as THREE.ShaderMaterial;
-      shadowMaterial.uniforms.uOpacity.value = Math.max(
-        shadowMaterial.uniforms.uOpacity.value,
-        hoverFactors[i] * 0.55
-      );
-    }
+    // Deterministic draw order — this is what actually stops one card's
+    // text bleeding into a neighbor once they overlap in the collapsed
+    // stack (position/z alone isn't reliable since depthWrite is false
+    // on these materials; renderOrder is the only thing that reliably
+    // controls transparent draw order here). Every element under this
+    // card (shadow, panel, both text layers) was tagged with a stable
+    // userData.localRenderOrder at creation — this just combines that
+    // with the card's index and hover state into one absolute value,
+    // every frame, so it self-corrects rather than drifting.
+    const cardBase = entry.cardIndex * 10;
+    const hoverBoost = hoverFactors[i] > 0.5 ? 1000 : 0;
+    entry.mesh.traverse(obj => {
+      const localOrder = (obj.userData.localRenderOrder as number | undefined) ?? 1;
+      obj.renderOrder = cardBase + hoverBoost + localOrder;
+    });
+
+    // if (entry.shadowMesh) {
+    //   const shadowMaterial = entry.shadowMesh.material as THREE.ShaderMaterial;
+    //   shadowMaterial.uniforms.uOpacity.value = Math.max(
+    //     shadowMaterial.uniforms.uOpacity.value,
+    //     hoverFactors[i] * 0.55
+    //   );
+    // }
   });
 }

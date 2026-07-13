@@ -32,8 +32,6 @@ export interface ParticleData {
 
   baseScale: number;
   baseOpacity: number;
-
-  shadowMesh?: THREE.Mesh;
 }
 
 export interface ParticleSettings {

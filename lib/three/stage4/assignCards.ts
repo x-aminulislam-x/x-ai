@@ -107,26 +107,13 @@ function setupSeedParticle(scene: THREE.Scene, particle: ParticleData, slot: Car
     finalMesh = mesh;
   }
 
-  attachShadow(particle, finalMesh);
+  // Stable local draw-order tag — cardInteraction.ts reads this every
+  // frame to compute an absolute renderOrder per card (cardIndex * 10 +
+  // localRenderOrder), which is what actually fixes cards' content
+  // bleeding into each other once they overlap in the collapsed stack.
+  finalMesh.userData.localRenderOrder = 1;
 }
 
-function attachShadow(particle: ParticleData, parentMesh: THREE.Mesh): void {
-  const shadowMaterial = createRoundedRectMaterial(
-    new THREE.Color('#000000'),
-    particle.baseScale,
-    particle.baseScale / 2,
-    0, // starts invisible — cardMorph/cardInteraction drive real opacity
-    9 // heavy blur so it reads as a soft shadow, not a second rect
-  );
-
-  const shadowMesh = new THREE.Mesh(cardGeometry, shadowMaterial);
-  shadowMesh.position.set(0.05, -0.05, -0.01); // down-right, just behind
-  shadowMesh.scale.set(1.08, 1.08, 1); // slightly larger so it peeks out
-  shadowMesh.renderOrder = -1; // always behind its own card
-
-  parentMesh.add(shadowMesh);
-  particle.shadowMesh = shadowMesh;
-}
 function getInitialOpacity(mesh: THREE.Object3D): number {
   const target =
     mesh instanceof THREE.Mesh ? mesh : mesh.children.find(child => child instanceof THREE.Mesh);

@@ -14,6 +14,7 @@ const fragmentShader = `
   uniform vec3 uColor;
   uniform float uOpacity;
   uniform float uBlur;
+  uniform float uGlass; // 0 = solid card (grid stage), 1 = frosted glass (collapsed stack)
   varying vec2 vUv;
 
   float sdRoundedBox(vec2 p, vec2 b, float r) {
@@ -27,7 +28,17 @@ const fragmentShader = `
     float aa = fwidth(d) * uBlur;
     float alpha = 1.0 - smoothstep(-aa, aa, d);
     if (alpha < 0.01) discard;
-    gl_FragColor = vec4(uColor, alpha * uOpacity);
+
+    // Soft diagonal sheen + whitened color, the two things that read as
+    // "frosted glass" without an actual backdrop-blur render pass.
+    float sheen = smoothstep(0.9, -0.9, (vUv.x - vUv.y)) * 0.18 * uGlass;
+    vec3 frosted = mix(uColor, vec3(1.0), 0.22 * uGlass);
+
+    // Thin brighter rim just inside the edge — the other common glass-card cue
+    float rim = smoothstep(-aa * 3.0, -aa, d) - alpha;
+    vec3 finalColor = frosted + sheen + rim * 0.25 * uGlass;
+
+    gl_FragColor = vec4(finalColor, alpha * uOpacity);
   }
 `;
 
@@ -41,7 +52,8 @@ export function createRoundedRectMaterial(
   initialSize: number,
   initialRadius: number,
   initialOpacity: number,
-  blur = 1.5
+  blur = 1.5,
+  initialGlass = 0
 ): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
     uniforms: {
@@ -50,6 +62,7 @@ export function createRoundedRectMaterial(
       uColor: { value: color },
       uOpacity: { value: initialOpacity },
       uBlur: { value: blur },
+      uGlass: { value: initialGlass },
     },
     vertexShader,
     fragmentShader,

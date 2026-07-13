@@ -40,9 +40,9 @@ function updateSeedParticle(particle: ParticleData, progress: number): void {
   );
 
   // Collapse to the left perfectly
-  if (progress > 0.6) {
-    const collapseFactor = THREE.MathUtils.clamp((progress - 0.6) / 0.4, 0, 1);
+  const collapseFactor = progress > 0.6 ? THREE.MathUtils.clamp((progress - 0.6) / 0.4, 0, 1) : 0;
 
+  if (progress > 0.6) {
     // Mathematically perfect vertical stack for the 6 cards on the left
     const targetLeftX = -6.0;
     const targetLeftY = 3.0 - particle.cardIndex * 1.2;
@@ -58,8 +58,13 @@ function updateSeedParticle(particle: ParticleData, progress: number): void {
 
   // 2. SIZE & SHAPE
   const buildProgress = THREE.MathUtils.clamp(progress / 0.6, 0, 1);
-  const width = THREE.MathUtils.lerp(particle.baseScale, particle.cardWidth, buildProgress);
+  let width = THREE.MathUtils.lerp(particle.baseScale, particle.cardWidth, buildProgress);
   const height = THREE.MathUtils.lerp(particle.baseScale, particle.cardHeight, buildProgress);
+
+  // Collapsed cards get extra width beyond their grid-formation width —
+  // giving the longer INSIGHT_LABELS text (e.g. "Correlation Surfaced")
+  // more room than the short dashboard metric values ever needed.
+  width = THREE.MathUtils.lerp(width, STAGE4_CONFIG.CARD_COLLAPSED_WIDTH, collapseFactor);
   mesh.scale.set(width, height, 1);
 
   const uniforms = material.uniforms;
@@ -83,13 +88,15 @@ function updateSeedParticle(particle: ParticleData, progress: number): void {
 
   uniforms.uOpacity.value = opacity;
 
-  if (particle.shadowMesh) {
-    const shadowMaterial = particle.shadowMesh.material as THREE.ShaderMaterial;
-    const collapseFactor = THREE.MathUtils.clamp((progress - 0.6) / 0.4, 0, 1);
-    shadowMaterial.uniforms.uSize.value.set(width, height);
-    shadowMaterial.uniforms.uRadius.value = uniforms.uRadius.value;
-    shadowMaterial.uniforms.uOpacity.value = collapseFactor * 0.35;
-  }
+  // uniforms.uGlass.value = collapseFactor;
+
+  // if (particle.shadowMesh) {
+  //   const shadowMaterial = particle.shadowMesh.material as THREE.ShaderMaterial;
+  //   const collapseFactor = THREE.MathUtils.clamp((progress - 0.6) / 0.4, 0, 1);
+  //   shadowMaterial.uniforms.uSize.value.set(width, height);
+  //   shadowMaterial.uniforms.uRadius.value = uniforms.uRadius.value;
+  //   shadowMaterial.uniforms.uOpacity.value = collapseFactor * 0.35;
+  // }
 }
 
 function updateDissolvingParticle(particle: ParticleData, progress: number): void {

@@ -23,14 +23,13 @@ export default function InsightFlowOverlay() {
     return () => cancelAnimationFrame(frameRef.current);
   }, []);
 
-  const displayIndex = hoveredCardIndex === -1 ? 0 : hoveredCardIndex;
   const isActive = cardsActive;
-  const label = isActive ? getInsightLabel(displayIndex) : null;
+  const label = isActive ? getInsightLabel(hoveredCardIndex) : null;
 
   return (
     <div
       className="absolute inset-0 z-20 pointer-events-none flex items-center justify-start pr-12"
-      style={{ paddingLeft: `calc(${stackRightFraction * 100}vw + 32px)` }}
+      style={{ paddingLeft: `calc(${stackRightFraction * 100}vw + 250px)` }}
     >
       <div
         className="max-w-md space-y-4 text-left transition-all duration-300 ease-out"

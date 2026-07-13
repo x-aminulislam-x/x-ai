@@ -44,6 +44,7 @@ export const STAGE4_CONFIG = {
   CARD_GAP_X: 0.6,
   CARD_GAP_Y: 0.6,
   CARD_CORNER_RADIUS: 0.18,
+  CARD_COLLAPSED_WIDTH: 4.5, // wider than the grid-formation CARD_WIDTH (3.2) — collapsed stack only
   CARD_OPACITY: 0.95,
   BORDER_OPACITY: 0.9,
   BORDER_SCALE_MULTIPLIER: 0.6,

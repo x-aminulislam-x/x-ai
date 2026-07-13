@@ -44,7 +44,11 @@ export function updateCardReform(
     const posAy = THREE.MathUtils.lerp(targetRect.position.y, collapsed.y, 1 - handoffT);
     const posAz = THREE.MathUtils.lerp(targetRect.position.z, collapsed.z, 1 - handoffT);
 
-    const widthA = THREE.MathUtils.lerp(targetRect.width, particle.cardWidth, 1 - handoffT);
+    const widthA = THREE.MathUtils.lerp(
+      targetRect.width,
+      STAGE4_CONFIG.CARD_COLLAPSED_WIDTH,
+      1 - handoffT
+    );
     const heightA = THREE.MathUtils.lerp(targetRect.height, particle.cardHeight, 1 - handoffT);
 
     // Phase B: collapsed column -> grid position (targetPosition), shrink to baseScale
