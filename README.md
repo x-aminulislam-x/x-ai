@@ -6,7 +6,7 @@ Rather than a standard marketing landing page, this repository contains a produc
 
 ## 🚀 Live Project Links
 
-- **Live Deployment:** [https://xai-intelligence-work-space.vercel.app/](https://xai-intelligence-work-space.vercel.app/)
+- **Live Deployment:** [Live Link](https://xai-intelligence-work-space.vercel.app/)
 - **Video Walkthrough (Design & Motion Decisions):** [Google Drive Video Link](https://drive.google.com/file/d/1-4U0ijNyP4rzalGSp9H9x8CclrlE5w9_/view?usp=sharing)
 
 ---
@@ -47,7 +47,7 @@ Follow these instructions to clone, install, and run the project environment loc
 ### 1. Clone the Repository
 
 ```bash
-git clone [https://github.com/x-aminulislam-x/Xai_Intelligence_Workspace.git](https://github.com/x-aminulislam-x/Xai_Intelligence_Workspace.git)
+git clone https://github.com/x-aminulislam-x/Xai_Intelligence_Workspace.git
 cd your-repo-name
 ```
 
