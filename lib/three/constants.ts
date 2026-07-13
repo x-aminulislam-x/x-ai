@@ -1,10 +1,10 @@
 export const PARTICLE_COUNT = 2500;
 
 export const PARTICLE_COLORS = {
-  primary: '#5EEAD4', // Turquoise
-  secondary: '#60A5FA', // Blue
-  accent: '#7C3AED', // Purple
-  highlight: '#FFFFFF', // White
+  primary: '#00FFDB', // Neon Turquoise
+  secondary: '#0077FF', // Electric Blue
+  accent: '#7000FF', // Neon Purple / Ultraviolet
+  highlight: '#FFFFFF', // Stark White (Alternative: #CCFF00 for Neon Lime)
 } as const;
 
 // Particle volume/distribution boundaries
@@ -24,7 +24,7 @@ export const CAMERA_SETTINGS = {
 
 // Animation and rendering configuration
 export const ANIMATION_CONFIG = {
-  RENDERER_BACKGROUND: '#050816',
+  RENDERER_BACKGROUND: '#000000',
   MAX_PIXEL_RATIO: 2,
   CAMERA_LERP_FACTOR: 0.03,
 } as const;

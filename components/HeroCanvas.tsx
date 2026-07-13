@@ -154,7 +154,7 @@ export default function HeroSection() {
 
   return (
     <section className="relative h-[1100vh]">
-      <div className="sticky top-0 h-screen overflow-hidden bg-[#050816]">
+      <div className="sticky top-0 h-screen overflow-hidden bg-black">
         <canvas
           ref={canvasRef}
           className="absolute block inset-0 h-full w-full"
