@@ -15,7 +15,8 @@ import {
   createDashboardContent,
   dashboardTimeline,
   generateCardSlots,
-  getContentRevealProgress,
+  getDashboardContentRevealProgress,
+  getInsightContentRevealProgress,
   updateCardMorph,
 } from './stage4';
 import {
@@ -24,6 +25,7 @@ import {
   registerCardSeeds,
   updateCardHover,
 } from './stage4/cardInteraction';
+import { updateCardStackBounds } from './stage4/cardStackBounds';
 import { dashboardHandoffTimeline, getHandoffContentFade, updateDashboardHandoff } from './stage5';
 import { updateCardReform, updateParticleRejoin } from './stage6';
 import { getLivelinessBoost } from './stage6/liveliness';
@@ -100,6 +102,10 @@ export function createScene(canvas: HTMLCanvasElement) {
     );
   });
 
+  animationLoop.updates.push(() => {
+    updateCardStackBounds(camera);
+  });
+
   animationLoop.updates.push(elapsed => {
     const liveliness = getLivelinessBoost(reformTimeline.getProgress());
     updateParticleMotion(
@@ -169,13 +175,13 @@ export function createScene(canvas: HTMLCanvasElement) {
   // window with stage5's fast fade-out at the start of the dashboard
   // handoff, so labels are fully gone before their card backgrounds
   // start reshaping into sidebar/header/panel/etc.
-  animationLoop.updates.push(elapsed => {
-    const revealProgress = getContentRevealProgress(dashboardTimeline.getProgress());
+  animationLoop.updates.push(() => {
+    const dashProgress = dashboardTimeline.getProgress();
+    const dashboardReveal = getDashboardContentRevealProgress(dashProgress);
+    const insightReveal = getInsightContentRevealProgress(dashProgress);
     const handoffFade = getHandoffContentFade(dashboardHandoffTimeline.getProgress());
-    const combinedReveal = revealProgress * handoffFade;
 
-    dashboardContent.updateIndicators(elapsed, combinedReveal);
-    dashboardContent.updateText(combinedReveal);
+    dashboardContent.updateText(dashboardReveal * handoffFade, insightReveal * handoffFade);
   });
 
   // Stage5 — morphs the 6 settled card backgrounds into dashboard-slot

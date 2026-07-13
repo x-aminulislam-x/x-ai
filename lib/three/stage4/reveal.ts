@@ -7,6 +7,12 @@ import * as THREE from 'three';
  * should be fully visible by that same point, not still fading in during
  * the 0.6 → 1.0 collapse-to-left-column phase.
  */
-export function getContentRevealProgress(morphProgress: number): number {
-  return THREE.MathUtils.smoothstep(morphProgress, 0.4, 0.6);
+export function getDashboardContentRevealProgress(morphProgress: number): number {
+  const fadeIn = THREE.MathUtils.smoothstep(morphProgress, 0.4, 0.6);
+  const fadeOut = THREE.MathUtils.smoothstep(morphProgress, 0.6, 0.85);
+  return fadeIn * (1 - fadeOut);
+}
+
+export function getInsightContentRevealProgress(morphProgress: number): number {
+  return THREE.MathUtils.smoothstep(morphProgress, 0.8, 1.0);
 }

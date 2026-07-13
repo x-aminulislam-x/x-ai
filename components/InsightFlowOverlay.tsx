@@ -1,77 +1,39 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { scrollTimeline } from '../lib/three/stage2';
+import { PARTICLE_COLORS } from '../lib/three/constants';
 import { cardInteraction } from '../lib/three/stage4/cardInteraction';
-import { getCardLabel } from '../lib/three/stage4/cardLabels';
-
-interface FlowStep {
-  id: string;
-  title: string;
-  subtitle: string;
-  description: string;
-  range: [number, number]; // [startProgress, endProgress]
-}
-
-const FLOW_STEPS: FlowStep[] = [
-  {
-    id: 'ingest',
-    title: '01 / Ingest Data',
-    subtitle: 'Unified Vector Stream',
-    description:
-      'Capture multi-modal datastreams asynchronously. Raw unstructured nodes anchor in real-time, preparing for structural classification.',
-    range: [0.0, 0.33],
-  },
-  {
-    id: 'analyze',
-    title: '02 / Analyze with AI',
-    subtitle: 'Contextual Synthesis',
-    description:
-      'Neural pipelines trigger neighbor detection arrays. Spatial meshes bind isolated data clusters together via contextual relevance weights.',
-    range: [0.33, 0.66],
-  },
-  {
-    id: 'generate',
-    title: '03 / Generate Insight',
-    subtitle: 'Deterministic Layouts',
-    description:
-      'Clustered network coordinates morph seamlessly into actionable analytical card layers, formatting raw patterns into human decision models.',
-    range: [0.66, 1.0],
-  },
-];
+import { cardStackBounds } from '../lib/three/stage4/cardStackBounds';
+import { getInsightLabel } from '../lib/three/stage4/insightLabels';
 
 export default function InsightFlowOverlay() {
   const [hoveredCardIndex, setHoveredCardIndex] = useState(-1);
-  const [progress, setProgress] = useState(0);
+  const [cardsActive, setCardsActive] = useState(false);
+  const [stackRightFraction, setStackRightFraction] = useState(0.32);
   const frameRef = useRef<number>(0);
 
   useEffect(() => {
-    const updateProgress = () => {
-      // Pull the current smoothly interpolated progress from your singleton timeline
-      setProgress(scrollTimeline.getProgress());
-      frameRef.current = requestAnimationFrame(updateProgress);
-    };
-
-    frameRef.current = requestAnimationFrame(updateProgress);
-    return () => cancelAnimationFrame(frameRef.current);
-  }, []);
-
-  useEffect(() => {
-    const syncWithCanvas = () => {
+    const sync = () => {
       setHoveredCardIndex(cardInteraction.hoveredCardIndex);
-      frameRef.current = requestAnimationFrame(syncWithCanvas);
+      setCardsActive(cardInteraction.cardsActive);
+      setStackRightFraction(cardStackBounds.rightEdgeScreenFraction);
+      frameRef.current = requestAnimationFrame(sync);
     };
-    frameRef.current = requestAnimationFrame(syncWithCanvas);
+    frameRef.current = requestAnimationFrame(sync);
     return () => cancelAnimationFrame(frameRef.current);
   }, []);
 
-  const isActive = hoveredCardIndex !== -1;
-  const label = isActive ? getCardLabel(hoveredCardIndex) : null;
+  const displayIndex = hoveredCardIndex === -1 ? 0 : hoveredCardIndex;
+  const isActive = cardsActive;
+  const label = isActive ? getInsightLabel(displayIndex) : null;
 
   return (
-    <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-end px-12 lg:px-24">
+    <div
+      className="absolute inset-0 z-20 pointer-events-none flex items-center justify-start pr-12"
+      style={{ paddingLeft: `calc(${stackRightFraction * 100}vw + 32px)` }}
+    >
       <div
-        className="max-w-md space-y-4 text-right transition-all duration-300 ease-out"
+        className="max-w-md space-y-4 text-left transition-all duration-300 ease-out"
         style={{
           opacity: isActive ? 1 : 0,
           filter: isActive ? 'blur(0px)' : 'blur(6px)',
@@ -80,7 +42,12 @@ export default function InsightFlowOverlay() {
       >
         {label && (
           <>
-            <span className="block font-mono text-xs tracking-widest text-teal-400/80 uppercase">
+            <span
+              className="block font-mono text-xs tracking-widest uppercase"
+              style={{
+                color: PARTICLE_COLORS.primary,
+              }}
+            >
               {label.tag}
             </span>
             <h2 className="text-2xl font-semibold tracking-tight text-white">{label.value}</h2>
@@ -91,17 +58,6 @@ export default function InsightFlowOverlay() {
           </>
         )}
       </div>
-
-      {/* <div className="hidden md:flex flex-col items-end font-mono text-[10px] tracking-wider text-slate-500 space-y-1 bg-black/20 backdrop-blur-sm p-4 rounded border border-white/5 self-end mb-12">
-        <div>SYS_STATUS: ACTIVE</div>
-        <div>TIMELINE_DELTA: {progress.toFixed(4)}</div>
-        <div>VECTOR_COUNT: 2500</div>
-      </div> */}
     </div>
   );
-}
-
-// Simple math helper inside the file for fluid interpolation without bulky dependencies
-function linearInterpolate(start: number, end: number, factor: number) {
-  return start + (end - start) * factor;
 }

@@ -13,6 +13,7 @@ const fragmentShader = `
   uniform float uRadius;
   uniform vec3 uColor;
   uniform float uOpacity;
+  uniform float uBlur;
   varying vec2 vUv;
 
   float sdRoundedBox(vec2 p, vec2 b, float r) {
@@ -23,7 +24,7 @@ const fragmentShader = `
   void main() {
     vec2 p = (vUv - 0.5) * uSize;
     float d = sdRoundedBox(p, uSize * 0.5, uRadius);
-    float aa = fwidth(d) * 1.5;
+    float aa = fwidth(d) * uBlur;
     float alpha = 1.0 - smoothstep(-aa, aa, d);
     if (alpha < 0.01) discard;
     gl_FragColor = vec4(uColor, alpha * uOpacity);
@@ -39,7 +40,8 @@ export function createRoundedRectMaterial(
   color: THREE.Color,
   initialSize: number,
   initialRadius: number,
-  initialOpacity: number
+  initialOpacity: number,
+  blur = 1.5
 ): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
     uniforms: {
@@ -47,6 +49,7 @@ export function createRoundedRectMaterial(
       uRadius: { value: initialRadius },
       uColor: { value: color },
       uOpacity: { value: initialOpacity },
+      uBlur: { value: blur },
     },
     vertexShader,
     fragmentShader,

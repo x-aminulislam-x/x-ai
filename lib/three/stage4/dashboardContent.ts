@@ -3,10 +3,10 @@ import { ParticleData } from '../particles/types';
 import { getCardLabel } from './cardLabels';
 import { CardText, createCardText } from './cardText';
 import { CardSlot } from './dashboardLayout';
+import { getInsightLabel } from './insightLabels';
 
 export interface DashboardContent {
-  updateIndicators: (elapsed: number, revealProgress: number) => void;
-  updateText: (revealProgress: number) => void;
+  updateText: (dashboardReveal: number, insightReveal: number) => void;
 }
 
 export function createDashboardContent(
@@ -14,27 +14,34 @@ export function createDashboardContent(
   particles: ParticleData[],
   _cardSlots: CardSlot[]
 ): DashboardContent {
-  const textLabels: CardText[] = [];
+  const dashboardTexts: CardText[] = [];
+  const insightTexts: CardText[] = [];
   const seeds = particles.filter(particle => particle.isCardSeed);
+  const black = new THREE.Color('#000000'); // drawText() ignores this param and always fills black — kept only for signature compatibility
 
   seeds.forEach(seed => {
     const mesh = seed.mesh as THREE.Mesh;
-    const material = mesh.material as THREE.ShaderMaterial;
-    const color = material.uniforms.uColor.value as THREE.Color;
 
-    const label = getCardLabel(seed.cardIndex);
-    const text = createCardText(label, color);
-    mesh.add(text.object);
-    textLabels.push(text);
+    const dashboardLabel = getCardLabel(seed.cardIndex);
+    const dashboardText = createCardText(dashboardLabel, black);
+    mesh.add(dashboardText.object);
+    dashboardTexts.push(dashboardText);
+
+    const insightLabel = getInsightLabel(seed.cardIndex);
+    const insightText = createCardText(insightLabel, black);
+    // Sits just in front of, and paints after, the dashboard text so
+    // there's no z-fighting or flicker during the brief window both
+    // could theoretically have nonzero opacity.
+    insightText.object.position.z = 0.011;
+    insightText.object.renderOrder = 3;
+    mesh.add(insightText.object);
+    insightTexts.push(insightText);
   });
 
   return {
-    updateIndicators() {},
-    updateText(revealProgress) {
-      textLabels.forEach((text, i) => {
-        const seed = seeds[i];
-        text.update(revealProgress, seed.mesh.scale);
-      });
+    updateText(dashboardReveal, insightReveal) {
+      dashboardTexts.forEach((text, i) => text.update(dashboardReveal, seeds[i].mesh.scale));
+      insightTexts.forEach((text, i) => text.update(insightReveal, seeds[i].mesh.scale));
     },
   };
 }

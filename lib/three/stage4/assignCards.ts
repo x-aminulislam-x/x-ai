@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { PARTICLE_COLORS } from '../constants';
 import { ParticleData } from '../particles/types';
 import { CardSlot } from './dashboardLayout';
-import { pointOnRectPerimeter } from './perimeter';
 import { createRoundedRectMaterial } from './roundedRectMaterial';
 
 const cardGeometry = new THREE.PlaneGeometry(1, 1);
@@ -82,19 +81,16 @@ function setupSeedParticle(scene: THREE.Scene, particle: ParticleData, slot: Car
   const shaderMaterial = createRoundedRectMaterial(
     color,
     initialDiameter,
-    initialDiameter / 2, // starts life as a perfect circle
+    initialDiameter / 2,
     particle.baseOpacity
   );
 
   const mesh = particle.mesh;
+  let finalMesh: THREE.Mesh;
 
   if (!(mesh instanceof THREE.Mesh)) {
-    // 'cross' type is a Group — replace it with a single mesh instead.
     const replacement = new THREE.Mesh(cardGeometry, shaderMaterial);
     replacement.position.copy(mesh.position);
-    // Card panels must be perfectly flat/aligned — do NOT inherit the
-    // source particle's rotation (crosses/squares are randomly rotated
-    // for visual variety in particleFactory.ts).
     replacement.rotation.set(0, 0, 0);
     replacement.scale.set(initialDiameter, initialDiameter, 1);
 
@@ -102,43 +98,35 @@ function setupSeedParticle(scene: THREE.Scene, particle: ParticleData, slot: Car
     scene.add(replacement);
 
     particle.mesh = replacement;
-    return;
+    finalMesh = replacement;
+  } else {
+    mesh.geometry = cardGeometry;
+    mesh.material = shaderMaterial;
+    mesh.rotation.set(0, 0, 0);
+    mesh.scale.set(initialDiameter, initialDiameter, 1);
+    finalMesh = mesh;
   }
 
-  mesh.geometry = cardGeometry;
-  mesh.material = shaderMaterial;
-  mesh.rotation.set(0, 0, 0);
-  mesh.scale.set(initialDiameter, initialDiameter, 1);
+  attachShadow(particle, finalMesh);
 }
 
-function setupBorderParticle(
-  particle: ParticleData,
-  slot: CardSlot,
-  index: number,
-  total: number
-): void {
-  particle.isCardSeed = false;
-  particle.dissolves = false;
-
-  const t = total > 0 ? index / total : 0;
-  const localOffset = pointOnRectPerimeter(t, slot.width, slot.height);
-
-  particle.cardPosition = new THREE.Vector3(
-    slot.position.x + localOffset.x,
-    slot.position.y + localOffset.y,
-    slot.position.z
+function attachShadow(particle: ParticleData, parentMesh: THREE.Mesh): void {
+  const shadowMaterial = createRoundedRectMaterial(
+    new THREE.Color('#000000'),
+    particle.baseScale,
+    particle.baseScale / 2,
+    0, // starts invisible — cardMorph/cardInteraction drive real opacity
+    9 // heavy blur so it reads as a soft shadow, not a second rect
   );
-}
 
-function getMaterialColor(mesh: THREE.Object3D): THREE.Color | null {
-  const target =
-    mesh instanceof THREE.Mesh ? mesh : mesh.children.find(child => child instanceof THREE.Mesh);
-  if (target instanceof THREE.Mesh && target.material instanceof THREE.MeshBasicMaterial) {
-    return target.material.color.clone();
-  }
-  return null;
-}
+  const shadowMesh = new THREE.Mesh(cardGeometry, shadowMaterial);
+  shadowMesh.position.set(0.05, -0.05, -0.01); // down-right, just behind
+  shadowMesh.scale.set(1.08, 1.08, 1); // slightly larger so it peeks out
+  shadowMesh.renderOrder = -1; // always behind its own card
 
+  parentMesh.add(shadowMesh);
+  particle.shadowMesh = shadowMesh;
+}
 function getInitialOpacity(mesh: THREE.Object3D): number {
   const target =
     mesh instanceof THREE.Mesh ? mesh : mesh.children.find(child => child instanceof THREE.Mesh);

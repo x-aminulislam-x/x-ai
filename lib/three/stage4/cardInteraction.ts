@@ -16,7 +16,10 @@ interface SeedMeshEntry {
   mesh: THREE.Mesh;
   cardIndex: number;
   baseColor: THREE.Color;
+  shadowMesh?: THREE.Mesh;
 }
+
+const HOVER_POP_Z = 0.4; // how far the hovered card steps toward the camera
 
 /**
  * Polled by React (same pattern as dashboardTimeline) to know which card,
@@ -24,6 +27,7 @@ interface SeedMeshEntry {
  */
 export const cardInteraction = {
   hoveredCardIndex: -1,
+  cardsActive: false, // NEW — true once cards are formed & hover-eligible
 };
 
 const raycaster = new THREE.Raycaster();
@@ -41,7 +45,8 @@ export function registerCardSeeds(particles: ParticleData[]): void {
       const mesh = particle.mesh as THREE.Mesh;
       const material = mesh.material as THREE.ShaderMaterial;
       const baseColor = (material.uniforms.uColor.value as THREE.Color).clone();
-      return { mesh, cardIndex: particle.cardIndex, baseColor };
+      // mesh.renderOrder = particle.cardIndex; // stable default stacking order
+      return { mesh, cardIndex: particle.cardIndex, baseColor, shadowMesh: particle.shadowMesh };
     });
 
   hoverFactors = seedEntries.map(() => 0);
@@ -57,25 +62,17 @@ export function updateCardHover(
   dashProgress: number,
   handoffProgress = 0
 ): void {
-  // Once the stage4->dashboard handoff begins, the seed meshes stop
-  // representing individual metrics (they're mid-morph into sidebar/
-  // header/panel/etc), so hover hit-testing and the highlight-toward-white
-  // effect need to switch off. Leaving isActive false here also drives
-  // hoverFactors back down to 0 via the lerp below, so any currently
-  // hovered card's highlight eases out cleanly instead of freezing mid-fade.
   const isActive = dashProgress > CARD_ACTIVATION_THRESHOLD && handoffProgress <= 0.001;
+  cardInteraction.cardsActive = isActive; // NEW
 
   let newHoveredIndex = -1;
 
   if (isActive && seedEntries.length > 0) {
     raycaster.setFromCamera(mouse.normalized, camera);
-    // recursive: false — each seed mesh has the AI indicator and text label
-    // as children, and we only want to hit-test the card panel itself.
     const intersects = raycaster.intersectObjects(
       seedEntries.map(entry => entry.mesh),
       false
     );
-
     if (intersects.length > 0) {
       const hit = seedEntries.find(entry => entry.mesh === intersects[0].object);
       if (hit) newHoveredIndex = hit.cardIndex;
@@ -91,5 +88,18 @@ export function updateCardHover(
     const material = entry.mesh.material as THREE.ShaderMaterial;
     const colorUniform = material.uniforms.uColor.value as THREE.Color;
     colorUniform.copy(entry.baseColor).lerp(HIGHLIGHT_COLOR, hoverFactors[i] * HIGHLIGHT_MIX);
+
+    // NEW — pop the hovered card toward the camera and draw it above its
+    // overlapping neighbors, so it's unambiguous which one is active.
+    entry.mesh.position.z += hoverFactors[i] * HOVER_POP_Z;
+    // entry.mesh.renderOrder = hoverFactors[i] > 0.01 ? 10 : entry.cardIndex;
+
+    if (entry.shadowMesh) {
+      const shadowMaterial = entry.shadowMesh.material as THREE.ShaderMaterial;
+      shadowMaterial.uniforms.uOpacity.value = Math.max(
+        shadowMaterial.uniforms.uOpacity.value,
+        hoverFactors[i] * 0.55
+      );
+    }
   });
 }
