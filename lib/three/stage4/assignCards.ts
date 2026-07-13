@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { PARTICLE_COLORS } from '../constants';
 import { ParticleData } from '../particles/types';
 import { CardSlot } from './dashboardLayout';
 import { pointOnRectPerimeter } from './perimeter';
@@ -76,7 +77,7 @@ function setupSeedParticle(scene: THREE.Scene, particle: ParticleData, slot: Car
   particle.cardHeight = slot.height;
 
   const initialDiameter = particle.baseScale;
-  const color = getMaterialColor(particle.mesh) ?? new THREE.Color('#5EEAD4');
+  const color = new THREE.Color(PARTICLE_COLORS.primary);
 
   const shaderMaterial = createRoundedRectMaterial(
     color,

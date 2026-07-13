@@ -60,39 +60,34 @@ function drawText(
   label: CardLabel,
   color: THREE.Color | string
 ): void {
-  const threeColor = color instanceof THREE.Color ? color : new THREE.Color(color);
-
   ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
 
-  const paddingX = 64; // tighter, more premium margin (was 80 on a cramped layout)
+  const paddingX = 64;
   let currentY = 90;
 
   // 1. EYEBROW
-  ctx.fillStyle = `#${threeColor.getHexString()}`;
-  ctx.font = '600 32px "JetBrains Mono", "Roboto Mono", monospace';
+  ctx.fillStyle = '#000000';
+  ctx.font = '600 50px "JetBrains Mono", "Roboto Mono", monospace';
   ctx.letterSpacing = '5px';
   ctx.globalAlpha = 0.85;
   ctx.fillText(label.tag, paddingX, currentY);
 
   currentY += 110;
 
-  // 2. PRIMARY METRIC — subtle glow for a premium dashboard feel
-  ctx.shadowColor = `#${threeColor.getHexString()}`;
-  ctx.shadowBlur = 24;
-  ctx.fillStyle = '#FFFFFF';
-  ctx.font = '700 176px system-ui, -apple-system, sans-serif';
+  // 2. PRIMARY METRIC — glow removed, doesn't read well in black
+  ctx.fillStyle = '#000000';
+  ctx.font = '700 250px system-ui, -apple-system, sans-serif';
   ctx.letterSpacing = '-4px';
   ctx.globalAlpha = 1.0;
   ctx.fillText(label.value, paddingX, currentY);
-  ctx.shadowBlur = 0;
 
-  currentY += 210;
+  currentY += 280;
 
   // 3. SUBTEXT
-  ctx.fillStyle = '#E2E8F0'; // brighter slate for legibility at this size
-  ctx.font = '500 42px system-ui, -apple-system, sans-serif';
+  ctx.fillStyle = '#000000';
+  ctx.font = '500 62px system-ui, -apple-system, sans-serif';
   ctx.letterSpacing = '0.5px';
   ctx.globalAlpha = 0.85;
   ctx.fillText(label.subtext, paddingX, currentY);
