@@ -26,6 +26,15 @@ const HOVER_POP_Z = 0.4; // how far the hovered card steps toward the camera
  */
 export const cardInteraction = {
   hoveredCardIndex: -1,
+  // Sticky, insight-flow-only index. Defaults to 0 (first card active by
+  // default) and only ever updates on a real hover hit — it never resets
+  // to -1 the way hoveredCardIndex does. Deliberately kept as a SEPARATE
+  // field from hoveredCardIndex: the Dashboard Content hover highlight
+  // (the white-tint/pop/renderOrder loop below) reads hoveredCardIndex
+  // directly, so defaulting *that* to 0 is what previously caused card 0
+  // to falsely highlight in the 3D canvas. lastHoveredCardIndex is only
+  // for consumers like InsightFlowOverlay that want a persistent selection.
+  lastHoveredCardIndex: 0,
   cardsActive: false, // NEW — true once cards are formed & hover-eligible
 };
 
@@ -78,6 +87,9 @@ export function updateCardHover(
   }
 
   cardInteraction.hoveredCardIndex = newHoveredIndex;
+  if (newHoveredIndex !== -1) {
+    cardInteraction.lastHoveredCardIndex = newHoveredIndex;
+  }
 
   seedEntries.forEach((entry, i) => {
     const target = entry.cardIndex === newHoveredIndex ? 1 : 0;
