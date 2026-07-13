@@ -84,8 +84,8 @@ export const STAGE7_CONFIG = {
 
   // Live-flow seeding & integration (replaces static point assignment)
   FLOW_SEED_SCALE: 0.05, // scales particle.originalPosition down into the Aizawa basin
-  FLOW_SEED_CLAMP: 1.4, // safety clamp so no seed starts outside the basin and diverges
-  FLOW_DT: 0.003,
+  FLOW_SEED_CLAMP: 2.4, // safety clamp so no seed starts outside the basin and diverges
+  FLOW_DT: 0.03,
   FLOW_SUBSTEPS_PER_FRAME: 1, // RK4 steps run per rendered frame — tune this for faster/slower "assembly"
 
   // Camera orbit
