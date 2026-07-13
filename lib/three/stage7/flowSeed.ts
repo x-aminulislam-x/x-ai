@@ -23,6 +23,5 @@ export function seedFlowPositions(particles: ParticleData[]): void {
     if (seed.lengthSq() < 0.0001) seed.set(0.1, 0.1, 0.1);
 
     particle.flowPosition.copy(seed);
-    particle.rawLorenzPosition.copy(seed);
   }
 }

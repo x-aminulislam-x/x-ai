@@ -19,6 +19,7 @@ export function createDragOrbit(canvas: HTMLCanvasElement): DragOrbitHandle {
     DRAG_ELEVATION_LIMIT,
     DRAG_INERTIA_DECAY,
     ZOOM_SENSITIVITY,
+    ZOOM_DEFAULT_RADIUS,
     ZOOM_MIN_RADIUS,
     ZOOM_MAX_RADIUS,
     ORBIT_RADIUS,
@@ -29,7 +30,7 @@ export function createDragOrbit(canvas: HTMLCanvasElement): DragOrbitHandle {
   // Defaults to ZOOM_MIN_RADIUS on load (item 4) — expressed as an
   // offset from ORBIT_RADIUS since that's what all the orbit math adds
   // this to.
-  const DEFAULT_ZOOM_OFFSET = ZOOM_MIN_RADIUS - ORBIT_RADIUS;
+  const DEFAULT_ZOOM_OFFSET = ZOOM_DEFAULT_RADIUS - ORBIT_RADIUS;
 
   let enabled = false;
   let isDragging = false;

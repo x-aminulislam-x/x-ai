@@ -101,8 +101,9 @@ export const STAGE7_CONFIG = {
   DRAG_INERTIA_DECAY: 0.92,
 
   // Scroll/pinch-wheel zoom
-  ZOOM_MIN_RADIUS: 18,
-  ZOOM_MAX_RADIUS: 55,
+  ZOOM_DEFAULT_RADIUS: 80, // where the camera starts / resets to
+  ZOOM_MIN_RADIUS: 18, // closest allowed — must stay clear of the object's own radius (DISPLAY_RADIUS × PARTICLE_JOIN_SCALE)
+  ZOOM_MAX_RADIUS: 92, // farthest allowed — CAMERA_SETTINGS.FAR is 100, keep margin below it
   ZOOM_SENSITIVITY: 0.02,
 
   // Hover dims the auto-rotate spin (not drag — drag stays full-speed
@@ -112,6 +113,4 @@ export const STAGE7_CONFIG = {
 
   AZIMUTH_RETURN_LERP: 0.03, // how fast tilt eases back to level after releasing a drag
   OBJECT_HOVER_RADIUS_MARGIN: 1.15, // hit-sphere size for the zoom-hover check, item 1
-
-  FLOW_SPEED: 0.025, // how fast particles advect along the live Aizawa flow once joined
 } as const;

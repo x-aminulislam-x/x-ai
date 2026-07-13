@@ -6,10 +6,10 @@ import { ParticleData } from '../particles/types';
 // hits 1.0 (see cardMorph.ts's collapseFactor). Wait until they're
 // effectively settled before enabling hit-testing, so hover doesn't engage
 // on a card that's still sliding into place.
-const ACTIVATION_THRESHOLD = 0.95;
+export const CARD_ACTIVATION_THRESHOLD = 0.95;
 
 const HIGHLIGHT_COLOR = new THREE.Color('#FFFFFF');
-const HIGHLIGHT_MIX = 0.35; // how far toward white the hovered card shifts
+const HIGHLIGHT_MIX = 0.5; // how far toward white the hovered card shifts
 const HIGHLIGHT_LERP_SPEED = 0.15; // per-frame ease, not framerate-independent but fine at 60fps
 
 interface SeedMeshEntry {
@@ -63,7 +63,7 @@ export function updateCardHover(
   // effect need to switch off. Leaving isActive false here also drives
   // hoverFactors back down to 0 via the lerp below, so any currently
   // hovered card's highlight eases out cleanly instead of freezing mid-fade.
-  const isActive = dashProgress > ACTIVATION_THRESHOLD && handoffProgress <= 0.001;
+  const isActive = dashProgress > CARD_ACTIVATION_THRESHOLD && handoffProgress <= 0.001;
 
   let newHoveredIndex = -1;
 

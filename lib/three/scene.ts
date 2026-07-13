@@ -18,7 +18,12 @@ import {
   getContentRevealProgress,
   updateCardMorph,
 } from './stage4';
-import { registerCardSeeds, updateCardHover } from './stage4/cardInteraction';
+import {
+  CARD_ACTIVATION_THRESHOLD,
+  cardInteraction,
+  registerCardSeeds,
+  updateCardHover,
+} from './stage4/cardInteraction';
 import { dashboardHandoffTimeline, getHandoffContentFade, updateDashboardHandoff } from './stage5';
 import { updateCardReform, updateParticleRejoin } from './stage6';
 import { getLivelinessBoost } from './stage6/liveliness';
@@ -194,6 +199,12 @@ export function createScene(canvas: HTMLCanvasElement) {
       dashboardTimeline.getProgress(),
       dashboardHandoffTimeline.getProgress()
     );
+    const cardsActive =
+      dashboardTimeline.getProgress() > CARD_ACTIVATION_THRESHOLD &&
+      dashboardHandoffTimeline.getProgress() <= 0.001;
+    if (cardsActive) {
+      canvas.style.cursor = cardInteraction.hoveredCardIndex !== -1 ? 'pointer' : 'default';
+    }
   });
 
   animationLoop.updates.push(() => {
