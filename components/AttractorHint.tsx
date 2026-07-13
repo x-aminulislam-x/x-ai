@@ -21,11 +21,7 @@ export default function AttractorHint({ visible }: { visible: boolean }) {
     if (!visible || !listenersReady || dismissed) return;
 
     const dismiss = () => setDismissed(true);
-    // Deliberately pointerdown only, NOT 'wheel' — wheel events fire
-    // continuously during the ordinary page-scroll that carries someone
-    // into this stage, so the previous version was dismissed by the
-    // tail end of that same scroll gesture before it ever had a chance
-    // to be seen.
+
     window.addEventListener('pointerdown', dismiss, { once: true });
     const hideTimer = setTimeout(dismiss, AUTO_HIDE_MS);
 

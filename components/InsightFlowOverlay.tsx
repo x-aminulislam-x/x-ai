@@ -14,11 +14,6 @@ export default function InsightFlowOverlay() {
 
   useEffect(() => {
     const sync = () => {
-      // lastHoveredCardIndex defaults to 0 and is sticky — it's what
-      // gives us "first card active by default, stays on last hover
-      // after the pointer leaves" without touching hoveredCardIndex,
-      // which the Dashboard Content hover highlight depends on staying
-      // at -1 when nothing is actually under the pointer.
       setHoveredCardIndex(cardInteraction.lastHoveredCardIndex);
       setCardsActive(cardInteraction.cardsActive);
       setStackRightFraction(cardStackBounds.rightEdgeScreenFraction);
@@ -31,15 +26,6 @@ export default function InsightFlowOverlay() {
   const isActive = cardsActive;
   const label = isActive ? getInsightLabel(hoveredCardIndex) : null;
 
-  // The panel's left edge sits at paddingLeft (stack-relative vw + a
-  // fixed offset). Whatever space is left between that edge and the
-  // viewport's right edge (minus the pr-12 gutter) is all the width
-  // the panel actually has — a fixed Tailwind class like max-w-md/xl
-  // has no idea how much of that is left, so on narrower viewports (or
-  // when stackRightFraction is large) the panel was wider than its
-  // remaining space and got silently clipped by the parent's
-  // overflow-hidden. min() caps it at a comfortable reading width but
-  // never lets it exceed what's actually available.
   const leftOffsetVw = stackRightFraction * 100;
   const panelWidth = `min(32rem, calc(100vw - ${leftOffsetVw}vw - 250px - 48px - 3rem))`;
 

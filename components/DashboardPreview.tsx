@@ -56,7 +56,6 @@ function pct(fraction: number): string {
 }
 
 interface DashboardPreviewProps {
-  /** True once the WebGL->DOM crossfade has meaningfully begun; drives the staggered entrance. */
   revealed: boolean;
 }
 

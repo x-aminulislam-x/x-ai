@@ -11,7 +11,6 @@ export function updateCardMorph(particles: ParticleData[], progress: number): vo
     } else if (particle.dissolves) {
       updateDissolvingParticle(particle, progress);
     }
-    // updateBorderParticle has been completely removed
   }
 }
 
@@ -87,16 +86,6 @@ function updateSeedParticle(particle: ParticleData, progress: number): void {
   }
 
   uniforms.uOpacity.value = opacity;
-
-  // uniforms.uGlass.value = collapseFactor;
-
-  // if (particle.shadowMesh) {
-  //   const shadowMaterial = particle.shadowMesh.material as THREE.ShaderMaterial;
-  //   const collapseFactor = THREE.MathUtils.clamp((progress - 0.6) / 0.4, 0, 1);
-  //   shadowMaterial.uniforms.uSize.value.set(width, height);
-  //   shadowMaterial.uniforms.uRadius.value = uniforms.uRadius.value;
-  //   shadowMaterial.uniforms.uOpacity.value = collapseFactor * 0.35;
-  // }
 }
 
 function updateDissolvingParticle(particle: ParticleData, progress: number): void {

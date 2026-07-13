@@ -49,21 +49,6 @@ export default function HeroSection() {
       return;
     }
 
-    // Chaining rule: every trigger except the LAST one uses end: 'bottom top'
-    // (consumes its full height, no viewport subtraction). Only the final
-    // trigger uses the default 'bottom bottom' (subtracts one viewport) —
-    // that's what makes the total consumed scroll distance match the
-    // section's actual pin duration (sectionHeight - 100vh) with no gaps
-    // and no overrun. stage5 is now the last trigger in the chain.
-    // scrollTimeline.init(stage23Ref.current, {
-    //   snapPoints: [0, 0.33, 0.66, 1],
-    //   end: 'bottom top',
-    // });
-    // dashboardTimeline.init(stage4Ref.current, {
-    //   snapPoints: [0, 0.4, 0.6, 1],
-    //   end: 'bottom top',
-    // });
-
     scrollTimeline.init(stage23Ref.current, {
       snapPoints: [0, 1],
       end: 'bottom top', // NOT the last trigger — consume full 300vh, no subtraction

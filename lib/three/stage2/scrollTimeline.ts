@@ -4,19 +4,11 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 gsap.registerPlugin(ScrollTrigger);
 
 export class ScrollTimeline {
-  /**
-   * Single source of truth.
-   * Value is always between 0 and 1.
-   */
   private targetProgress = 0;
   private progress = 0;
 
   private timeline?: gsap.core.Timeline;
 
-  /**
-   * Returns the current normalized progress value.
-   * Centralizing this allows for easy future scaling (e.g., lerping, clamping, easing).
-   */
   public getProgress(): number {
     return this.progress;
   }

@@ -6,12 +6,6 @@ import { createRoundedRectMaterial } from './roundedRectMaterial';
 
 const cardGeometry = new THREE.PlaneGeometry(1, 1);
 
-/**
- * One-time setup (called once at scene creation, right after stage3's
- * grid assignment): buckets particles into card clusters, picks a seed
- * particle per card to become the panel, and lays the rest out along
- * that card's border.
- */
 export function assignParticlesToCards(
   scene: THREE.Scene,
   particles: ParticleData[],
@@ -107,10 +101,6 @@ function setupSeedParticle(scene: THREE.Scene, particle: ParticleData, slot: Car
     finalMesh = mesh;
   }
 
-  // Stable local draw-order tag — cardInteraction.ts reads this every
-  // frame to compute an absolute renderOrder per card (cardIndex * 10 +
-  // localRenderOrder), which is what actually fixes cards' content
-  // bleeding into each other once they overlap in the collapsed stack.
   finalMesh.userData.localRenderOrder = 1;
 }
 

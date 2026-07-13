@@ -2,14 +2,6 @@ import * as THREE from 'three';
 import { STAGE6_CONFIG } from '../constants';
 import { ParticleData } from '../particles/types';
 
-/**
- * Reverse of cardMorph.ts's updateDissolvingParticle — fades the
- * background particles that dissolved in stage 4 back to full
- * opacity/scale. Their position is already handled by
- * particleMotion.ts (it lerps toward targetPosition, the grid anchor,
- * whenever scrollTimeline is at 1 — which it already is here), so this
- * only needs to touch opacity and scale.
- */
 export function updateParticleRejoin(particles: ParticleData[], reformProgress: number): void {
   if (reformProgress < 0.001) return;
   const { REJOIN_START, REJOIN_END } = STAGE6_CONFIG;

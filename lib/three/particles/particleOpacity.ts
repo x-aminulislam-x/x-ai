@@ -1,12 +1,6 @@
 import * as THREE from 'three';
 import { ParticleData } from './types';
 
-/**
- * Updates particle opacity based on depth.
- *
- * Near particles are more opaque.
- * Far particles become more transparent.
- */
 export function updateParticleOpacity(particles: ParticleData[]) {
   for (const particle of particles) {
     const depth = THREE.MathUtils.clamp((particle.position.z + 8) / 16, 0, 1);

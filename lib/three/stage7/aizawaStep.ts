@@ -1,12 +1,3 @@
-/**
- * In-place RK4 step — mutates `state` directly instead of returning a
- * new object. Used in the per-frame hot loop (updateParticleFlow, 2500
- * particles × FLOW_SUBSTEPS_PER_FRAME calls, every frame) where the
- * original aizawaRk4Step's object-per-call pattern was measurable GC
- * pressure. All intermediates here are plain numbers, not objects — the
- * function accepts anything with numeric x/y/z fields, so a
- * THREE.Vector3 can be passed straight in with no wrapper.
- */
 export function aizawaStepInPlace(
   state: { x: number; y: number; z: number },
   dt: number,

@@ -7,10 +7,6 @@ export interface CardSlot {
   height: number;
 }
 
-/**
- * Lays out card slots in a centered grid, same spirit as
- * stage3/grid.ts's generateGridAnchors.
- */
 export function generateCardSlots(): CardSlot[] {
   const { CARD_COUNT, CARD_COLUMNS, CARD_WIDTH, CARD_HEIGHT, CARD_GAP_X, CARD_GAP_Y } =
     STAGE4_CONFIG;

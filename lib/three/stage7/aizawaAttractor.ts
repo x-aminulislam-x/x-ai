@@ -55,14 +55,6 @@ export function aizawaRk4Step(
   };
 }
 
-/**
- * Integrates one long reference trajectory purely to find where the
- * attractor sits and how big it is in raw ODE space — NOT to assign
- * per-particle positions anymore. Every particle now finds its own way
- * onto the attractor by actually integrating (see particleFlow.ts); this
- * just gives that live simulation a center/scale so it renders at
- * DISPLAY_RADIUS instead of the tiny raw Aizawa scale.
- */
 export function computeAizawaNormalization(config: typeof STAGE7_CONFIG): AizawaNormalization {
   const {
     AIZAWA_A,

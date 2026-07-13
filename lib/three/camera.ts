@@ -2,9 +2,6 @@ import * as THREE from 'three';
 import { ANIMATION_CONFIG, CAMERA_SETTINGS } from './constants';
 import { lerp } from './utils/math';
 
-/**
- * Instantiates and configures the main PerspectiveCamera.
- */
 export function createCamera(): THREE.PerspectiveCamera {
   const camera = new THREE.PerspectiveCamera(
     CAMERA_SETTINGS.FOV,

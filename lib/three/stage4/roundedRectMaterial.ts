@@ -42,11 +42,6 @@ const fragmentShader = `
   }
 `;
 
-/**
- * Creates a single rounded-rectangle SDF material. uSize and uRadius
- * are both in the SAME local units the mesh's scale is set to, so the
- * rounding stays correct even as the card stretches non-uniformly.
- */
 export function createRoundedRectMaterial(
   color: THREE.Color,
   initialSize: number,

@@ -35,10 +35,6 @@ export class AnimationLoop {
     this.isRunning = false;
   }
 
-  /**
-   * The core loop runner. It never changes, regardless of how many
-   * animation chunks (20-30+) are pushed into the pipeline.
-   */
   private animate(): void {
     if (!this.isRunning) return;
 

@@ -2,10 +2,6 @@ import * as THREE from 'three';
 import { MouseState } from '../inputs/mouse';
 import { ParticleData } from '../particles/types';
 
-// Cards are still collapsing into their left-column stack until dashProgress
-// hits 1.0 (see cardMorph.ts's collapseFactor). Wait until they're
-// effectively settled before enabling hit-testing, so hover doesn't engage
-// on a card that's still sliding into place.
 export const CARD_ACTIVATION_THRESHOLD = 0.95;
 
 const HIGHLIGHT_COLOR = new THREE.Color('#FFFFFF');
@@ -20,20 +16,8 @@ interface SeedMeshEntry {
 
 const HOVER_POP_Z = 0.4; // how far the hovered card steps toward the camera
 
-/**
- * Polled by React (same pattern as dashboardTimeline) to know which card,
- * if any, is currently under the pointer.
- */
 export const cardInteraction = {
   hoveredCardIndex: -1,
-  // Sticky, insight-flow-only index. Defaults to 0 (first card active by
-  // default) and only ever updates on a real hover hit — it never resets
-  // to -1 the way hoveredCardIndex does. Deliberately kept as a SEPARATE
-  // field from hoveredCardIndex: the Dashboard Content hover highlight
-  // (the white-tint/pop/renderOrder loop below) reads hoveredCardIndex
-  // directly, so defaulting *that* to 0 is what previously caused card 0
-  // to falsely highlight in the 3D canvas. lastHoveredCardIndex is only
-  // for consumers like InsightFlowOverlay that want a persistent selection.
   lastHoveredCardIndex: 0,
   cardsActive: false, // NEW — true once cards are formed & hover-eligible
 };
@@ -42,10 +26,6 @@ const raycaster = new THREE.Raycaster();
 let seedEntries: SeedMeshEntry[] = [];
 let hoverFactors: number[] = [];
 
-/**
- * Call once, after assignParticlesToCards() has finished replacing seed
- * particles' meshes with their final card-panel mesh.
- */
 export function registerCardSeeds(particles: ParticleData[]): void {
   seedEntries = particles
     .filter(particle => particle.isCardSeed)
@@ -59,10 +39,6 @@ export function registerCardSeeds(particles: ParticleData[]): void {
   hoverFactors = seedEntries.map(() => 0);
 }
 
-/**
- * Call every frame, after updateCardMorph() so meshes are already
- * positioned/scaled for the current frame before we raycast against them.
- */
 export function updateCardHover(
   mouse: MouseState,
   camera: THREE.PerspectiveCamera,
@@ -101,28 +77,11 @@ export function updateCardHover(
 
     entry.mesh.position.z += hoverFactors[i] * HOVER_POP_Z;
 
-    // Deterministic draw order — this is what actually stops one card's
-    // text bleeding into a neighbor once they overlap in the collapsed
-    // stack (position/z alone isn't reliable since depthWrite is false
-    // on these materials; renderOrder is the only thing that reliably
-    // controls transparent draw order here). Every element under this
-    // card (shadow, panel, both text layers) was tagged with a stable
-    // userData.localRenderOrder at creation — this just combines that
-    // with the card's index and hover state into one absolute value,
-    // every frame, so it self-corrects rather than drifting.
     const cardBase = entry.cardIndex * 10;
     const hoverBoost = hoverFactors[i] > 0.5 ? 1000 : 0;
     entry.mesh.traverse(obj => {
       const localOrder = (obj.userData.localRenderOrder as number | undefined) ?? 1;
       obj.renderOrder = cardBase + hoverBoost + localOrder;
     });
-
-    // if (entry.shadowMesh) {
-    //   const shadowMaterial = entry.shadowMesh.material as THREE.ShaderMaterial;
-    //   shadowMaterial.uniforms.uOpacity.value = Math.max(
-    //     shadowMaterial.uniforms.uOpacity.value,
-    //     hoverFactors[i] * 0.55
-    //   );
-    // }
   });
 }

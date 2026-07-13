@@ -4,19 +4,6 @@ import { lerp } from '../utils/math';
 
 let autoAngleAccum = 0;
 
-/**
- * Orbits the camera using spherical coordinates (azimuth + elevation +
- * radius). The auto-rotate part of azimuth is now an ACCUMULATOR,
- * incremented each frame by `delta * speed * hoverFactor`, rather than
- * derived fresh from absolute `elapsed` each frame. That's what lets
- * hoverFactor smoothly slow the spin without a jump — an
- * `elapsed * speed * hoverFactor` formula would discontinuously warp
- * position whenever hoverFactor changes, since `elapsed` keeps growing
- * underneath it regardless.
- * Resets the accumulator when lorenzProgress drops back near 0, so the
- * scroll-loop starts each lap from a clean angle instead of wherever
- * the orbit last was.
- */
 export function updateCameraOrbit(
   camera: THREE.PerspectiveCamera,
   elapsed: number,

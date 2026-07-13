@@ -29,16 +29,7 @@ export function updateParticleMotion(
 ) {
   // ---------------------------------------------------------------------------
   // Convert mouse from Normalized Device Coordinates to world space.
-  // We project onto the z = 0 plane, which is the center of our particle volume.
   // ---------------------------------------------------------------------------
-
-  // mouseWorld.set(mouse.normalized.x, mouse.normalized.y, 0).unproject(camera);
-
-  // const direction = mouseWorld.sub(camera.position).normalize();
-
-  // const distance = -camera.position.z / direction.z;
-
-  // mouseWorld.copy(camera.position).add(direction.multiplyScalar(distance));
 
   // Build a ray from the current mouse position.
   raycaster.setFromCamera(mouse.normalized, camera);
@@ -56,12 +47,6 @@ export function updateParticleMotion(
 
     const progress = scrollTimeline.getProgress();
 
-    // Stage 6 reverses the "organizing calms things down" effect: as
-    // liveliness rises, motionProgress falls back toward 0 so speed,
-    // turbulence, and calm all ease back to their free-floating values.
-    // `progress` itself is untouched — it still needs to stay at 1 below,
-    // so particles keep snapping to their grid targetPosition, not drifting
-    // back to originalPosition.
     const motionProgress = progress * (1 - liveliness);
 
     const speed =
@@ -165,8 +150,6 @@ export function updateParticleMotion(
       magnetX = dx * strength;
       magnetY = dy * strength;
     }
-
-    // particle.mesh.position.set(x + magnetX, y + magnetY, z);
 
     particle.mesh.position.x = THREE.MathUtils.lerp(particle.mesh.position.x, x + magnetX, 0.12);
 

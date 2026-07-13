@@ -12,9 +12,6 @@ export interface CardText {
 const CANVAS_WIDTH = 1024;
 const CANVAS_HEIGHT = 640;
 
-// Text block now sized as a fraction of the ACTUAL card width/height
-// (previously a fixed 0.8 regardless of card size — the root cause of
-// the text looking tiny once cards reached full scale)
 const LOCAL_WIDTH = STAGE4_CONFIG.CARD_WIDTH * 0.82;
 const LOCAL_Y = 0;
 
@@ -60,14 +57,6 @@ const VALUE_MAX_FONT_SIZE = 250;
 const VALUE_MIN_FONT_SIZE = 120; // floor — below this it's better to accept tight tracking than shrink further
 const VALUE_AVAILABLE_WIDTH = CANVAS_WIDTH - CARD_PADDING_X * 2;
 
-/**
- * Finds the largest font size (down to VALUE_MIN_FONT_SIZE) at which
- * `text` fits within VALUE_AVAILABLE_WIDTH pixels. This is the actual
- * fix for long INSIGHT_LABELS values ("Correlation Surfaced" etc.)
- * getting clipped — that clipping happens in this 2D canvas's pixel
- * space, independent of how wide the 3D card mesh is, so widening the
- * card alone (see cardMorph.ts) doesn't prevent it on its own.
- */
 function fitFontSize(ctx: CanvasRenderingContext2D, text: string): number {
   let size = VALUE_MAX_FONT_SIZE;
   while (size > VALUE_MIN_FONT_SIZE) {
@@ -99,9 +88,6 @@ function drawText(
 
   currentY += 110;
 
-  // 2. PRIMARY METRIC — font size now fit to the actual string, so long
-  // insight values never overflow the canvas the way short dashboard
-  // metric values ("98.2%", "1.2K") never used to.
   const valueFontSize = fitFontSize(ctx, label.value);
   ctx.fillStyle = '#000000';
   ctx.font = `700 ${valueFontSize}px system-ui, -apple-system, sans-serif`;

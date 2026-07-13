@@ -27,9 +27,6 @@ export function createDragOrbit(canvas: HTMLCanvasElement): DragOrbitHandle {
     HOVER_LERP_FACTOR,
   } = STAGE7_CONFIG;
 
-  // Defaults to ZOOM_MIN_RADIUS on load (item 4) — expressed as an
-  // offset from ORBIT_RADIUS since that's what all the orbit math adds
-  // this to.
   const DEFAULT_ZOOM_OFFSET = ZOOM_DEFAULT_RADIUS - ORBIT_RADIUS;
 
   let enabled = false;
@@ -78,9 +75,6 @@ export function createDragOrbit(canvas: HTMLCanvasElement): DragOrbitHandle {
   }
 
   function onWheel(e: WheelEvent) {
-    // Only intercept while the cursor is actually over the attractor's
-    // geometry — outside that (or before stage 7 is formed) we don't
-    // preventDefault, so normal page scroll stays completely untouched.
     if (!enabled || !isOverObject) return;
     e.preventDefault();
     zoomOffset = THREE.MathUtils.clamp(
@@ -106,11 +100,6 @@ export function createDragOrbit(canvas: HTMLCanvasElement): DragOrbitHandle {
       canvas.style.cursor = value ? 'grab' : 'default';
       if (!value) isOverObject = false;
     },
-    // Called every frame from scene.ts with the result of the same
-    // raycast hit-test that gates zoom — this single boolean now drives
-    // BOTH "is zoom allowed" and "should the auto-spin dim", so the two
-    // are guaranteed to agree, and both track the cursor's actual
-    // current position rather than a stale enter/leave crossing.
     setPointerOverObject: (isOver: boolean) => {
       isOverObject = isOver;
     },

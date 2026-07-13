@@ -6,12 +6,6 @@ const raycaster = new THREE.Raycaster();
 const sphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), 0);
 const hitPoint = new THREE.Vector3();
 
-/**
- * Geometric hit-test only — whether the mouse ray currently crosses the
- * attractor's bounding volume. Progress gating (is stage 7 even formed
- * yet) is the caller's responsibility, kept separate on purpose so this
- * stays a pure "is the cursor over the shape" check.
- */
 export function isPointerOverAttractor(
   mouse: MouseState,
   camera: THREE.PerspectiveCamera

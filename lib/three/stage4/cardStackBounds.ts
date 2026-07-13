@@ -12,11 +12,6 @@ export const cardStackBounds = {
 
 const projectionPoint = new THREE.Vector3();
 
-/**
- * Projects the collapsed card stack's right edge to normalized [0,1]
- * screen-space X, so the DOM insight panel can sit flush beside it —
- * instead of a hardcoded vw guess that breaks on viewport/camera changes.
- */
 export function updateCardStackBounds(camera: THREE.PerspectiveCamera): void {
   projectionPoint.set(STACK_RIGHT_EDGE_WORLD_X, STACK_WORLD_Y, STACK_WORLD_Z);
   projectionPoint.project(camera);

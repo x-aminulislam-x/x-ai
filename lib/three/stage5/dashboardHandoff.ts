@@ -3,13 +3,6 @@ import { STAGE4_CONFIG } from '../constants';
 import { ParticleData } from '../particles/types';
 import { CARD_INDEX_TO_SLOT, DASHBOARD_SLOTS, fractionalRectToWorld } from './dashboardGrid';
 
-/**
- * Mirrors the left-column collapse target from cardMorph.ts's
- * updateSeedParticle (targetLeftX/Y/Z). dashboardTimeline (stage4) is
- * pinned at progress 1 by the time this stage runs, so this is exactly
- * where each card is sitting when the handoff begins — using it as the
- * lerp start means there's no jump at handoffProgress = 0.
- */
 export function getCollapsedPosition(cardIndex: number): THREE.Vector3 {
   return new THREE.Vector3(-6.0, 3.0 - cardIndex * 1.2, -2.0);
 }

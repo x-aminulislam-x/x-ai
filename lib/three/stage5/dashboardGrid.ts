@@ -13,12 +13,6 @@ export interface WorldRect {
   height: number; // world units
 }
 
-/**
- * Single source of truth for the dashboard layout. Both the WebGL handoff
- * (dashboardHandoff.ts) and the real DOM dashboard (DashboardPreview.tsx)
- * read from this same object — that's what keeps the WebGL landing
- * positions and the DOM crossfade target perfectly aligned.
- */
 export const DASHBOARD_SLOTS = {
   sidebar: { x: 0.0, y: 0.0, width: 0.16, height: 1.0 },
   header: { x: 0.16, y: 0.0, width: 0.84, height: 0.08 },
@@ -40,22 +34,8 @@ export const CARD_INDEX_TO_SLOT: Record<number, DashboardSlotKey> = {
   5: 'table',
 };
 
-// Depth the dashboard sits at — matches the z the cards are already at
-// during the stage4 left-column collapse (see cardMorph.ts's targetLeftZ),
-// so there's no depth pop when the handoff begins.
 const DASHBOARD_Z = -2;
 
-/**
- * Converts a viewport-fraction rect into a world-space rect at a fixed
- * depth, given the camera's current vertical FOV/aspect/distance.
- *
- * Assumes the camera is looking at the origin (see camera.ts's
- * lookAt(0,0,0)) and is effectively still by the time this runs — see the
- * drift-damping added to updateCamera, which zeroes out camera parallax
- * once dashboardTimeline (stage4) settles at progress 1. Without that
- * stillness, these world targets would drift frame to frame and the
- * landing positions would visibly swim instead of locking into place.
- */
 export function fractionalRectToWorld(
   rect: FractionalRect,
   camera: THREE.PerspectiveCamera

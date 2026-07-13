@@ -7,7 +7,6 @@ export interface CardLabel {
   detail: string; // Longer blurb shown in the hover detail panel
 }
 
-/** Deterministic per-card readout, keyed by cardIndex. */
 const CARD_LABELS: CardLabel[] = [
   {
     tag: 'SYS_ACCURACY',
