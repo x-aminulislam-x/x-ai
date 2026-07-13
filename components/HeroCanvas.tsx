@@ -1,21 +1,23 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { STAGE7_CONFIG } from '../lib/three/constants';
+import { STAGE6_CONFIG, STAGE7_CONFIG } from '../lib/three/constants';
 import { createScene } from '../lib/three/scene';
 import { scrollTimeline } from '../lib/three/stage2';
+import { CARD_ACTIVATION_THRESHOLD, cardInteraction } from '../lib/three/stage4/cardInteraction';
 import { dashboardTimeline } from '../lib/three/stage4/dashboardTimeline';
 import { dashboardHandoffTimeline } from '../lib/three/stage5/dashboardTimeline';
 import { reformTimeline } from '../lib/three/stage6';
 import { lorenzTimeline } from '../lib/three/stage7';
 import AttractorHint from './AttractorHint';
+import CardsHint from './CardsHint';
 import DashboardPreview from './DashboardPreview';
+import IllusionHint from './IllusionHint';
 import InsightFlowOverlay from './InsightFlowOverlay';
 
 const TITLE_FADE_END = 0.08;
 const CROSSFADE_START = 0.82;
 const CROSSFADE_END = 1.0;
-const REVERSE_CROSSFADE_END = 0.15;
 
 export default function HeroSection() {
   const stage23Ref = useRef<HTMLDivElement>(null);
@@ -31,6 +33,7 @@ export default function HeroSection() {
   const [dashboardOpacity, setDashboardOpacity] = useState(0);
 
   const [attractorFormed, setAttractorFormed] = useState(false);
+  const [cardsHintVisible, setCardsHintVisible] = useState(false);
 
   const frameRef = useRef<number>(0);
 
@@ -117,7 +120,7 @@ export default function HeroSection() {
       );
 
       const reformProgress = reformTimeline.getProgress();
-      const reverseCrossfade = clamp01(reformProgress / REVERSE_CROSSFADE_END);
+      const reverseCrossfade = clamp01(reformProgress / STAGE6_CONFIG.CROSSFADE_REVERSE_END);
 
       // forwardCrossfade brings the DOM dashboard in; reverseCrossfade
       // then brings it back out as stage 6 begins, handing back to canvas.
@@ -126,6 +129,12 @@ export default function HeroSection() {
       setCanvasOpacity(1 - combinedCrossfade);
       setDashboardOpacity(combinedCrossfade);
       setAttractorFormed(lorenzTimeline.getProgress() > STAGE7_CONFIG.DRAG_ENABLE_THRESHOLD);
+
+      // inside sync(), before the requestAnimationFrame call
+      const cardsActive =
+        dashboardTimeline.getProgress() > CARD_ACTIVATION_THRESHOLD &&
+        dashboardHandoffTimeline.getProgress() <= 0.001;
+      setCardsHintVisible(cardsActive && cardInteraction.hoveredCardIndex === -1);
 
       frameRef.current = requestAnimationFrame(sync);
     };
@@ -163,6 +172,9 @@ export default function HeroSection() {
 
         <InsightFlowOverlay />
         <AttractorHint visible={attractorFormed} />
+        <IllusionHint visible={attractorFormed} />
+        <CardsHint visible={cardsHintVisible} />
+
         <div
           className="absolute inset-0 z-30"
           style={{
